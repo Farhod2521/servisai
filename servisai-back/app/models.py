@@ -30,6 +30,9 @@ class User(TimestampMixin, Base):
     telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True)
     telegram_username: Mapped[str | None] = mapped_column(String(64))
 
+    # Hisobdagi mablag‘ (so‘mda)
+    balance: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")
+
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -78,10 +81,12 @@ class Order(TimestampMixin, Base):
     comment: Mapped[str | None] = mapped_column(Text)
     # Bajarilgandan so‘ng mijozga ko‘rsatiladigan ma’lumot (login, faollashtirish yo‘riqnomasi va h.k.)
     delivery_info: Mapped[str | None] = mapped_column(Text)
+    # Hisobdan to‘langan buyurtma bekor qilinsa, pul hisobga qaytariladi
+    paid_from_balance: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
     user: Mapped[User] = relationship(back_populates="orders")
     events: Mapped[list["OrderEvent"]] = relationship(
-        back_populates="order", order_by="OrderEvent.created_at", cascade="all, delete-orphan"
+        back_populates="order", order_by=lambda: (OrderEvent.created_at, OrderEvent.id), cascade="all, delete-orphan"
     )
 
     @property
@@ -123,4 +128,52 @@ class TelegramLoginSession(Base):
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     error: Mapped[str | None] = mapped_column(String(255))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class TopUpStatus(str, enum.Enum):
+    pending = "pending"  # Admin tekshiruvida
+    approved = "approved"  # Tasdiqlandi, hisobga tushdi
+    rejected = "rejected"  # Rad etildi
+
+
+class TopUp(Base):
+    """Hisobni to‘ldirish so‘rovi: foydalanuvchi chek yuboradi, admin Telegramda tasdiqlaydi."""
+
+    __tablename__ = "topups"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    amount: Mapped[int] = mapped_column(BigInteger)
+    receipt_path: Mapped[str] = mapped_column(String(255))
+    status: Mapped[TopUpStatus] = mapped_column(
+        Enum(TopUpStatus, name="topup_status"), default=TopUpStatus.pending, index=True
+    )
+    admin_note: Mapped[str | None] = mapped_column(Text)
+    reviewed_by: Mapped[str | None] = mapped_column(String(255))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped[User] = relationship()
+
+
+class TransactionType(str, enum.Enum):
+    topup = "topup"  # Hisob to‘ldirildi
+    purchase = "purchase"  # Xarid uchun yechildi
+    refund = "refund"  # Bekor qilingan buyurtma qaytarildi
+
+
+class Transaction(Base):
+    """Hisobdagi har bir harakat (kirim +, chiqim -)."""
+
+    __tablename__ = "transactions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, name="transaction_type"))
+    amount: Mapped[int] = mapped_column(BigInteger)
+    balance_after: Mapped[int] = mapped_column(BigInteger)
+    topup_id: Mapped[int | None] = mapped_column(ForeignKey("topups.id", ondelete="SET NULL"))
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"))
+    note: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

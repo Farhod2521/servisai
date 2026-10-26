@@ -11,6 +11,7 @@ export type User = {
   telegram_id: number | null;
   telegram_username: string | null;
   has_google: boolean;
+  balance: number;
   is_admin: boolean;
   created_at: string;
 };
@@ -29,6 +30,7 @@ export type Order = {
   status: OrderStatus;
   comment: string | null;
   delivery_info: string | null;
+  paid_from_balance: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -46,6 +48,43 @@ export type HistoryItem = {
 };
 
 export type UserStats = { total_orders: number; active_orders: number; completed_orders: number; total_spent: number };
+
+export type Wallet = {
+  balance: number;
+  card_number: string | null;
+  card_holder: string | null;
+  min_amount: number;
+  max_amount: number;
+  topup_enabled: boolean;
+};
+
+export type TopUpStatus = "pending" | "approved" | "rejected";
+
+export type TopUp = {
+  id: number;
+  amount: number;
+  status: TopUpStatus;
+  admin_note: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+};
+
+export type Transaction = {
+  id: number;
+  type: "topup" | "purchase" | "refund";
+  amount: number;
+  balance_after: number;
+  note: string | null;
+  order_id: number | null;
+  topup_id: number | null;
+  created_at: string;
+};
+
+export const topUpStatusMeta: Record<TopUpStatus, { label: string; className: string }> = {
+  pending: { label: "Tekshirilmoqda", className: "bg-amber-50 text-amber-700" },
+  approved: { label: "Tasdiqlandi", className: "bg-emerald-50 text-emerald-700" },
+  rejected: { label: "Rad etildi", className: "bg-rose-50 text-rose-600" },
+};
 
 export type AuthConfig = { google_client_id: string | null; telegram_bot_username: string | null };
 

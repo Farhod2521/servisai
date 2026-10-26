@@ -3,8 +3,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from ..deps import AdminUser, CurrentUser, SessionDep
-from ..models import Order, OrderEvent, OrderStatus, Product, User
-from ..notify import notify_order_created, notify_order_status
+from ..models import Order, OrderEvent, OrderStatus, Product, TransactionType, User
+from ..notify import format_price, notify_order_created, notify_order_status
 from ..schemas import (
     HistoryItemOut,
     OrderCreate,
@@ -13,6 +13,7 @@ from ..schemas import (
     OrderOut,
     OrderStatusUpdate,
 )
+from ..wallet import InsufficientFunds, change_balance
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 admin_router = APIRouter(prefix="/admin/orders", tags=["admin"])
@@ -37,6 +38,7 @@ async def create_order(data: OrderCreate, user: CurrentUser, session: SessionDep
     if duration not in product.durations:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Bu muddat mavjud emas")
 
+    # Buyurtma hisobdagi mablag‘ orqali darhol to‘lanadi
     order = Order(
         user_id=user.id,
         product_id=product.id,
@@ -44,9 +46,26 @@ async def create_order(data: OrderCreate, user: CurrentUser, session: SessionDep
         duration_months=duration,
         price=product.price,
         comment=data.comment,
-        events=[OrderEvent(status=OrderStatus.pending, note="Buyurtma yaratildi")],
+        status=OrderStatus.paid,
+        paid_from_balance=True,
+        events=[
+            OrderEvent(status=OrderStatus.pending, note="Buyurtma yaratildi"),
+            OrderEvent(status=OrderStatus.paid, note="Hisobdan to‘landi"),
+        ],
     )
     session.add(order)
+    await session.flush()
+    try:
+        user = await change_balance(
+            session, user.id, -product.price, TransactionType.purchase, note=f"{product.name} xaridi", order_id=order.id
+        )
+    except InsufficientFunds as e:
+        price = product.price
+        await session.rollback()
+        raise HTTPException(
+            status.HTTP_402_PAYMENT_REQUIRED,
+            f"Hisobingizda mablag‘ yetarli emas. Balans: {format_price(e.balance)} so‘m, kerak: {format_price(price)} so‘m",
+        )
     await session.commit()
     order = await _get_order(session, order.id)
     background.add_task(notify_order_created, order, user)
@@ -122,6 +141,13 @@ async def admin_update_status(
     order_id: int, data: OrderStatusUpdate, _: AdminUser, session: SessionDep, background: BackgroundTasks
 ):
     order = await _get_order(session, order_id)
+    if order.status == OrderStatus.cancelled:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Bekor qilingan buyurtmani o‘zgartirib bo‘lmaydi")
+    if data.status == OrderStatus.cancelled and order.paid_from_balance:
+        await change_balance(
+            session, order.user_id, order.price, TransactionType.refund, note=f"{order.number} bekor qilindi", order_id=order.id
+        )
+        data.note = (data.note + "\n" if data.note else "") + "Mablag‘ hisobga qaytarildi"
     order.status = data.status
     if data.delivery_info is not None:
         order.delivery_info = data.delivery_info

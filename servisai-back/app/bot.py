@@ -12,6 +12,7 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import (
+    CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     KeyboardButton,
@@ -25,7 +26,8 @@ from .accounts import AccountConflict, upsert_telegram_user
 from .config import settings
 from .database import SessionLocal
 from .models import Order, TelegramLoginSession, TelegramLoginStatus, User
-from .notify import STATUS_LABELS, format_price
+from .notify import STATUS_LABELS, format_price, notify_topup_result
+from .wallet import TopUpAlreadyReviewed, review_topup
 
 log = logging.getLogger("servisai.bot")
 dp = Dispatcher()
@@ -101,7 +103,7 @@ async def start(message: Message) -> None:
     await message.answer(
         "👋 Assalomu alaykum! Bu <b>servisai.uz</b> rasmiy boti.\n\n"
         "Saytga kirish uchun saytdagi «Tizimga kirish» → «Telegram orqali kirish» tugmasini bosing.\n\n"
-        "/orders — mening buyurtmalarim",
+        "/orders — mening buyurtmalarim\n/balans — hisobim",
         reply_markup=site_button("🌐 Saytni ochish", "/"),
     )
 
@@ -129,6 +131,19 @@ async def my_orders(message: Message) -> None:
     await message.answer("🧾 <b>Oxirgi buyurtmalaringiz</b>\n\n" + "\n\n".join(lines), reply_markup=site_button("📋 Barchasini ko‘rish"))
 
 
+@dp.message(Command("balans", "balance"))
+async def my_balance(message: Message) -> None:
+    async with SessionLocal() as session:
+        user = await session.scalar(select(User).where(User.telegram_id == message.from_user.id))
+    if user is None:
+        await message.answer("Siz hali ro‘yxatdan o‘tmagansiz. Saytda «Telegram orqali kirish» tugmasini bosing.")
+        return
+    await message.answer(
+        f"💰 Hisobingiz: <b>{format_price(user.balance)} so‘m</b>",
+        reply_markup=site_button("➕ Hisobni to‘ldirish", "/profil?tab=hisob"),
+    )
+
+
 @dp.message(F.contact)
 async def save_contact(message: Message) -> None:
     if message.contact.user_id != message.from_user.id:
@@ -143,6 +158,48 @@ async def save_contact(message: Message) -> None:
         user.phone = phone if phone.startswith("+") else f"+{phone}"
         await session.commit()
     await message.answer("📱 Raqamingiz saqlandi. Rahmat!", reply_markup=ReplyKeyboardRemove())
+
+
+def is_admin(user_id: int) -> bool:
+    return user_id in settings.admin_telegram_id_list or str(user_id) == settings.telegram_admin_chat_id.strip()
+
+
+@dp.callback_query(F.data.startswith("topup:"))
+async def review_topup_callback(callback: CallbackQuery) -> None:
+    """Admin chatidagi chek ostidagi «Tasdiqlash / Rad etish» tugmalari."""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Sizda bu amal uchun ruxsat yo‘q", show_alert=True)
+        return
+    _, action, raw_id = callback.data.split(":")
+    approve = action == "approve"
+    admin = callback.from_user
+    reviewer = f"@{admin.username}" if admin.username else admin.full_name
+
+    async with SessionLocal() as session:
+        try:
+            topup = await review_topup(session, int(raw_id), approve=approve, reviewer=reviewer)
+        except LookupError:
+            await callback.answer("So‘rov topilmadi", show_alert=True)
+            return
+        except TopUpAlreadyReviewed:
+            await callback.answer("Bu so‘rov allaqachon ko‘rib chiqilgan", show_alert=True)
+            await callback.message.edit_reply_markup(reply_markup=None)
+            return
+        await session.commit()
+        user = await session.get(User, topup.user_id)
+
+    result = (
+        f"\n\n✅ <b>Tasdiqlandi</b> ({html.escape(reviewer)})\nYangi balans: {format_price(user.balance)} so‘m"
+        if approve
+        else f"\n\n❌ <b>Rad etildi</b> ({html.escape(reviewer)})"
+    )
+    caption = (callback.message.html_text or "") + result
+    try:
+        await callback.message.edit_caption(caption=caption, reply_markup=None)
+    except Exception:  # xabar juda eski yoki caption o‘zgarmagan bo‘lsa
+        await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.answer("Tasdiqlandi" if approve else "Rad etildi")
+    await notify_topup_result(topup, user)
 
 
 async def main() -> None:

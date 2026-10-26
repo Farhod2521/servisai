@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     # Telegram orqali kirish havolasi necha soniya amal qiladi
     telegram_login_ttl: int = 300
 
+    # Hisobni to‘ldirish: mijoz shu kartaga pul o‘tkazib, chek yuboradi
+    payment_card_number: str = ""
+    payment_card_holder: str = ""
+    topup_min_amount: int = 1000
+    topup_max_amount: int = 50_000_000
+    media_dir: str = "media"
+
     admin_emails: str = ""
     admin_telegram_ids: str = ""
 

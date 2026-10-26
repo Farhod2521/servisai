@@ -18,6 +18,8 @@ type AuthContextValue = {
   openLogin: (options?: LoginOptions) => void;
   setSession: (token: string, user: User) => void;
   setUser: (user: User) => void;
+  /** Balans kabi o‘zgaruvchan ma’lumotlarni serverdan qayta olish */
+  refreshUser: () => Promise<void>;
   logout: () => void;
 };
 
@@ -50,14 +52,22 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setUser(u);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      setUser(await api<User>("/users/me"));
+    } catch {
+      /* keyingi urinishda yangilanadi */
+    }
+  }, []);
+
   const logout = useCallback(() => {
     tokenStore.set(null);
     setUser(null);
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, openLogin: (o = {}) => setLogin(o), setSession, setUser, logout }),
-    [user, loading, setSession, logout],
+    () => ({ user, loading, openLogin: (o = {}) => setLogin(o), setSession, setUser, refreshUser, logout }),
+    [user, loading, setSession, refreshUser, logout],
   );
 
   return (

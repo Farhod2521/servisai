@@ -109,8 +109,8 @@ export default async function ProductPage({ params }: PageProps<"/mahsulotlar/[i
               </div>
               <p className="mt-1 text-sm text-slate-500">{p.durations[0]} oylik obuna uchun</p>
 
-              <BuyButton productId={p.id} duration={p.durations[0]} />
-              <p className="mt-3 text-center text-xs text-slate-500">To‘lov: Click, Payme, Uzcard, Humo</p>
+              <BuyButton productId={p.id} duration={p.durations[0]} price={p.price} />
+              <p className="mt-3 text-center text-xs text-slate-500">To‘lov hisobingizdan yechiladi · Hisobni karta orqali to‘ldirasiz</p>
             </div>
 
             <ul className="mt-5 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">

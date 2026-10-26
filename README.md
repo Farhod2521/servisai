@@ -36,13 +36,23 @@ Saytdagi **«Tizimga kirish»** tugmasi oynani ochadi, unda ikki usul bor. Hisob
 
 Profil sahifasida bir hisobga ikkala usulni ham ulash mumkin («Kirish usullari» → «Ulash»).
 
+## Hisob (balans)
+
+1. Mijoz **Profil → Hisobim** bo‘limida `PAYMENT_CARD_NUMBER` kartasiga pul o‘tkazadi, summani yozib chek rasmini yuklaydi.
+2. Chek `TELEGRAM_ADMIN_CHAT_ID` chatiga **«✅ Tasdiqlash / ❌ Rad etish»** tugmalari bilan boradi.
+3. Admin (`ADMIN_TELEGRAM_IDS` dagi yoki `TELEGRAM_ADMIN_CHAT_ID` ning o‘zi) tasdiqlasa — summa hisobga tushadi, mijozga botdan xabar boradi.
+4. «Sotib olish» narxni hisobdan yechadi (buyurtma darhol «To‘landi» bo‘ladi). Admin buyurtmani bekor qilsa, pul hisobga qaytadi.
+
+Har bir kirim/chiqim `transactions` jadvalida saqlanadi, cheklar `media` volume’ida. Botda `/balans` buyrug‘i bor.
+
 ## Profil (`/profil`)
 
+- **Hisobim** — balans, to‘ldirish (karta + chek), so‘rovlar holati, kirim/chiqim tarixi.
 - **Profil** — statistika (jami/faol/bajarilgan buyurtmalar, jami xarid), ism va telefonni tahrirlash, kirish usullari.
 - **Mening buyurtmalarim** — status bo‘yicha filtr, har bir buyurtmaning tarixi (timeline), faollashtirish ma’lumotlari, bekor qilish.
 - **Buyurtmalar tarixi** — barcha buyurtmalar bo‘yicha voqealar lentasi.
 
-Mahsulot sahifasidagi **«Sotib olish»** tugmasi buyurtma yaratadi (kirilmagan bo‘lsa — avval kirish oynasi).
+Mahsulot sahifasidagi **«Sotib olish»** tugmasi narxni hisobdan yechib buyurtma yaratadi (kirilmagan bo‘lsa — avval kirish oynasi, mablag‘ yetmasa — «Hisobni to‘ldirish»).
 Mijozga va `TELEGRAM_ADMIN_CHAT_ID` ga Telegram orqali xabar boradi.
 
 ## API
@@ -61,7 +71,11 @@ Mijozga va `TELEGRAM_ADMIN_CHAT_ID` ga Telegram orqali xabar boradi.
 | GET   | `/api/orders/history` | Barcha buyurtmalar tarixi |
 | GET   | `/api/orders/{id}` | Buyurtma va uning tarixi |
 | POST  | `/api/orders/{id}/cancel` | Bekor qilish (faqat `pending`) |
-| PATCH | `/api/admin/orders/{id}` | Admin: status/izoh/faollashtirish ma’lumoti |
+| PATCH | `/api/admin/orders/{id}` | Admin: status/izoh/faollashtirish ma’lumoti (bekor qilinsa pul qaytadi) |
+| GET   | `/api/wallet` | Balans va karta rekvizitlari |
+| GET/POST | `/api/wallet/topups` | To‘ldirish so‘rovlari / yangi so‘rov (`amount` + `receipt` fayl) |
+| GET   | `/api/wallet/transactions` | Hisob tarixi |
+| POST  | `/api/admin/topups/{id}` | Admin: `{"approve": true}` (odatda Telegram tugmasi orqali) |
 
 Adminlar `ADMIN_EMAILS` / `ADMIN_TELEGRAM_IDS` orqali belgilanadi (keyingi kirishda `is_admin` bo‘ladi).
 Statuslar: `pending` → `paid` → `processing` → `completed` (yoki `cancelled`).

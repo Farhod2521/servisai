@@ -10,3 +10,4 @@ google-auth==2.40.2
 requests==2.32.3
 httpx==0.28.1
 aiogram==3.20.0
+python-multipart==0.0.20

@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../components/auth/AuthProvider";
 import { Avatar } from "../components/auth/UserMenu";
-import { GoogleLogo, History, LogOut, Receipt, Send, UserIcon } from "../components/icons";
+import { GoogleLogo, History, LogOut, Receipt, Send, UserIcon, Wallet } from "../components/icons";
 import { formatPrice } from "../mahsulotlar/catalog-data";
 import {
   api,
@@ -19,9 +19,12 @@ import {
   type User,
   type UserStats,
 } from "../lib/api";
+import { Card, Empty, ErrorText } from "./ui";
+import WalletTab from "./WalletTab";
 
 const tabs = [
   { id: "profil", label: "Profil", icon: UserIcon },
+  { id: "hisob", label: "Hisobim", icon: Wallet },
   { id: "buyurtmalar", label: "Mening buyurtmalarim", icon: Receipt },
   { id: "tarix", label: "Buyurtmalar tarixi", icon: History },
 ] as const;
@@ -89,7 +92,8 @@ export default function Profile() {
       </aside>
 
       <section className="min-w-0">
-        {tab === "profil" && <ProfileTab user={user} onShowOrders={() => select("buyurtmalar")} />}
+        {tab === "profil" && <ProfileTab user={user} onSelect={select} />}
+        {tab === "hisob" && <WalletTab />}
         {tab === "buyurtmalar" && <OrdersTab />}
         {tab === "tarix" && <HistoryTab />}
       </section>
@@ -98,18 +102,6 @@ export default function Profile() {
 }
 
 /* ---------- Umumiy ---------- */
-
-function Card({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">{title}</h2>
-        {action}
-      </div>
-      <div className="mt-4">{children}</div>
-    </div>
-  );
-}
 
 function StatusBadge({ status }: { status: OrderStatus }) {
   const m = statusMeta[status];
@@ -120,24 +112,9 @@ function StatusBadge({ status }: { status: OrderStatus }) {
   );
 }
 
-function Empty({ text }: { text: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center">
-      <p className="text-sm text-slate-500">{text}</p>
-      <Link href="/mahsulotlar" className="mt-4 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">
-        Servislarni ko‘rish
-      </Link>
-    </div>
-  );
-}
-
-function ErrorText({ text }: { text: string }) {
-  return <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{text}</p>;
-}
-
 /* ---------- Profil ---------- */
 
-function ProfileTab({ user, onShowOrders }: { user: User; onShowOrders: () => void }) {
+function ProfileTab({ user, onSelect }: { user: User; onSelect: (tab: Tab) => void }) {
   const { setUser, openLogin } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [googleEnabled, setGoogleEnabled] = useState(false);
@@ -171,11 +148,11 @@ function ProfileTab({ user, onShowOrders }: { user: User; onShowOrders: () => vo
     }
   };
 
-  const statItems = [
-    { label: "Jami buyurtmalar", value: stats?.total_orders },
-    { label: "Faol buyurtmalar", value: stats?.active_orders },
-    { label: "Bajarilgan", value: stats?.completed_orders },
-    { label: "Jami xarid", value: stats && `${formatPrice(stats.total_spent)} so‘m` },
+  const statItems: { label: string; value: string | number | undefined; tab: Tab }[] = [
+    { label: "Balans", value: `${formatPrice(user.balance)} so‘m`, tab: "hisob" },
+    { label: "Jami buyurtmalar", value: stats?.total_orders, tab: "buyurtmalar" },
+    { label: "Faol buyurtmalar", value: stats?.active_orders, tab: "buyurtmalar" },
+    { label: "Bajarilgan", value: stats?.completed_orders, tab: "buyurtmalar" },
   ];
 
   const input =
@@ -187,7 +164,7 @@ function ProfileTab({ user, onShowOrders }: { user: User; onShowOrders: () => vo
         {statItems.map((s) => (
           <button
             key={s.label}
-            onClick={onShowOrders}
+            onClick={() => onSelect(s.tab)}
             className="rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-100 transition hover:ring-brand"
           >
             <p className="text-xs text-slate-500">{s.label}</p>

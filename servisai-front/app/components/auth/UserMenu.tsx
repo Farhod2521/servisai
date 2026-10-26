@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { User } from "../../lib/api";
-import { History, LogOut, Receipt, UserIcon } from "../icons";
+import { formatPrice } from "../../mahsulotlar/catalog-data";
+import { History, LogOut, Receipt, UserIcon, Wallet } from "../icons";
 import { useAuth } from "./AuthProvider";
 
 export function Avatar({ user, className = "size-9" }: { user: User; className?: string }) {
@@ -22,6 +23,7 @@ export function Avatar({ user, className = "size-9" }: { user: User; className?:
 
 export const accountLinks = [
   { href: "/profil", label: "Profil", icon: UserIcon },
+  { href: "/profil?tab=hisob", label: "Hisobim", icon: Wallet },
   { href: "/profil?tab=buyurtmalar", label: "Mening buyurtmalarim", icon: Receipt },
   { href: "/profil?tab=tarix", label: "Buyurtmalar tarixi", icon: History },
 ];
@@ -69,6 +71,14 @@ export default function UserMenu() {
             <p className="truncate text-xs text-slate-500">
               {user.email ?? (user.telegram_username ? `@${user.telegram_username}` : user.phone)}
             </p>
+            <Link
+              href="/profil?tab=hisob"
+              onClick={() => setOpen(false)}
+              className="mt-2 flex items-center justify-between rounded-lg bg-brand-soft px-3 py-2 text-xs font-semibold text-brand"
+            >
+              <span>Balans</span>
+              <span>{formatPrice(user.balance)} so‘m</span>
+            </Link>
           </div>
           {accountLinks.map(({ href, label, icon: Icon }) => (
             <Link

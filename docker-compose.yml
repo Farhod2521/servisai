@@ -23,6 +23,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      # Yuborilgan chek rasmlari
+      - media:/app/media
     ports:
       - "${BACKEND_PORT:-8000}:8000"
 
@@ -52,3 +55,4 @@ services:
 
 volumes:
   pgdata:
+  media:

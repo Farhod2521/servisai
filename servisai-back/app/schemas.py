@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .models import OrderStatus
+from .models import OrderStatus, TopUpStatus, TransactionType
 
 
 class ORM(BaseModel):
@@ -18,6 +18,7 @@ class UserOut(ORM):
     telegram_id: int | None
     telegram_username: str | None
     has_google: bool
+    balance: int
     is_admin: bool
     created_at: datetime
 
@@ -94,6 +95,7 @@ class OrderOut(ORM):
     status: OrderStatus
     comment: str | None
     delivery_info: str | None
+    paid_from_balance: bool
     created_at: datetime
     updated_at: datetime
 
@@ -121,3 +123,38 @@ class OrderStatusUpdate(BaseModel):
     status: OrderStatus
     note: str | None = Field(default=None, max_length=1000)
     delivery_info: str | None = None
+
+
+class WalletOut(BaseModel):
+    balance: int
+    card_number: str | None
+    card_holder: str | None
+    min_amount: int
+    max_amount: int
+    # Admin chati sozlanmagan bo‘lsa to‘ldirib bo‘lmaydi
+    topup_enabled: bool
+
+
+class TopUpOut(ORM):
+    id: int
+    amount: int
+    status: TopUpStatus
+    admin_note: str | None
+    created_at: datetime
+    reviewed_at: datetime | None
+
+
+class TransactionOut(ORM):
+    id: int
+    type: TransactionType
+    amount: int
+    balance_after: int
+    note: str | None
+    order_id: int | None
+    topup_id: int | None
+    created_at: datetime
+
+
+class TopUpReview(BaseModel):
+    approve: bool
+    note: str | None = Field(default=None, max_length=500)

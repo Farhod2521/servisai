@@ -10,7 +10,8 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY . .
-RUN chmod +x entrypoint.sh
+# Windows’da CRLF bilan klon qilingan bo‘lsa ham skript ishlashi uchun
+RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
 
 EXPOSE 8000
 

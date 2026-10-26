@@ -10,6 +10,7 @@ import { formatPrice } from "../mahsulotlar/catalog-data";
 import {
   api,
   formatDate,
+  type AuthConfig,
   statusMeta,
   type HistoryItem,
   type Order,
@@ -139,6 +140,7 @@ function ErrorText({ text }: { text: string }) {
 function ProfileTab({ user, onShowOrders }: { user: User; onShowOrders: () => void }) {
   const { setUser, openLogin } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
   const [name, setName] = useState(user.full_name);
   const [phone, setPhone] = useState(user.phone ?? "");
   const [saving, setSaving] = useState(false);
@@ -146,6 +148,9 @@ function ProfileTab({ user, onShowOrders }: { user: User; onShowOrders: () => vo
 
   useEffect(() => {
     api<UserStats>("/users/me/stats").then(setStats).catch(() => {});
+    api<AuthConfig>("/auth/config")
+      .then((c) => setGoogleEnabled(Boolean(c.google_client_id)))
+      .catch(() => {});
   }, []);
 
   const save = async (e: FormEvent) => {
@@ -233,20 +238,22 @@ function ProfileTab({ user, onShowOrders }: { user: User; onShowOrders: () => vo
 
       <Card title="Kirish usullari">
         <ul className="divide-y divide-slate-100">
-          <li className="flex items-center gap-3 py-3">
-            <GoogleLogo className="size-6" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Google</p>
-              <p className="truncate text-xs text-slate-500">{user.has_google ? user.email : "Ulanmagan"}</p>
-            </div>
-            {user.has_google ? (
-              <span className="text-xs font-semibold text-emerald-600">Ulangan</span>
-            ) : (
-              <button onClick={() => openLogin({ link: true })} className="text-sm font-semibold text-brand hover:underline">
-                Ulash
-              </button>
-            )}
-          </li>
+          {(googleEnabled || user.has_google) && (
+            <li className="flex items-center gap-3 py-3">
+              <GoogleLogo className="size-6" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">Google</p>
+                <p className="truncate text-xs text-slate-500">{user.has_google ? user.email : "Ulanmagan"}</p>
+              </div>
+              {user.has_google ? (
+                <span className="text-xs font-semibold text-emerald-600">Ulangan</span>
+              ) : (
+                <button onClick={() => openLogin({ link: true })} className="text-sm font-semibold text-brand hover:underline">
+                  Ulash
+                </button>
+              )}
+            </li>
+          )}
           <li className="flex items-center gap-3 py-3">
             <span className="grid size-6 place-items-center rounded-full bg-[#229ED9] text-white">
               <Send className="size-3.5" />

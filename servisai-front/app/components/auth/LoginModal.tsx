@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api, type AuthConfig, type TelegramInit, type TelegramStatus, type TokenResponse, type User } from "../../lib/api";
-import { Close, GoogleLogo, Logo, Send } from "../icons";
+import { Close, Logo, Send } from "../icons";
 import { useAuth } from "./AuthProvider";
 
 type GoogleId = {
@@ -195,20 +195,14 @@ export default function LoginModal({ link, onClose, onSuccess }: Props) {
           {loadingConfig && (
             <>
               <div className="h-11 animate-pulse rounded-full bg-slate-100" />
-              <div className="h-11 animate-pulse rounded-full bg-slate-100" />
             </>
           )}
 
-          {config?.google_client_id ? (
+          {/* Google faqat GOOGLE_CLIENT_ID berilganda ko‘rsatiladi */}
+          {config?.google_client_id && (
             <div className={busy ? "pointer-events-none opacity-60" : ""}>
               <div ref={googleRef} className="flex min-h-11 w-full justify-center" />
             </div>
-          ) : (
-            config && (
-              <button disabled className="flex h-11 w-full items-center justify-center gap-2.5 rounded-full text-sm font-semibold text-slate-400 ring-1 ring-slate-200">
-                <GoogleLogo className="size-5 opacity-50" /> Google orqali kirish sozlanmagan
-              </button>
-            )
           )}
 
           {config && (

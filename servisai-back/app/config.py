@@ -1,5 +1,6 @@
 from functools import cached_property
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +27,11 @@ class Settings(BaseSettings):
 
     admin_emails: str = ""
     admin_telegram_ids: str = ""
+
+    @field_validator("telegram_bot_username")
+    @classmethod
+    def _strip_at(cls, v: str) -> str:
+        return v.strip().lstrip("@")
 
     @cached_property
     def cors_origin_list(self) -> list[str]:

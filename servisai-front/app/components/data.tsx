@@ -38,7 +38,7 @@ export const products: Product[] = [
     id: "chatgpt-plus",
     name: "ChatGPT Plus",
     description: "GPT-4, DALL-E, Advanced Data Analysis va yana ko‘p imkoniyatlar",
-    price: "129 000",
+    price: "200 000",
     duration: "1 oy",
     categories: ["chat", "code", "office"],
     logo: (
@@ -51,7 +51,7 @@ export const products: Product[] = [
     id: "gemini-advanced",
     name: "Gemini Advanced",
     description: "Google’ning eng yangi AI modeli, 1.5 Pro, 2TB gacha imkoniyatlar",
-    price: "129 000",
+    price: "35 000",
     duration: "18 oy",
     categories: ["chat", "office"],
     logo: (
@@ -64,7 +64,7 @@ export const products: Product[] = [
     id: "capcut-pro",
     name: "CapCut Pro",
     description: "Premium shablonlar, AI video, futajlar, barchasiga kirish",
-    price: "69 000",
+    price: "40 000",
     duration: "1 oy",
     categories: ["design"],
     logo: (

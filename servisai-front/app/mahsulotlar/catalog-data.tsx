@@ -100,7 +100,7 @@ const logos = {
 };
 
 export const catalogProducts: CatalogProduct[] = [
-  { id: "chatgpt-plus", name: "ChatGPT Plus", description: "GPT-4, DALL-E, Advanced Data Analysis va yana ko‘p imkoniyatlar", category: "chat", type: "individual", seller: "official", durations: [1], price: 129000, badge: "popular", rating: 4.9, reviews: 1200, sold: 12500, rank: 1, addedAt: 1, logo: logos.openai,
+  { id: "chatgpt-plus", name: "ChatGPT Plus", description: "GPT-4, DALL-E, Advanced Data Analysis va yana ko‘p imkoniyatlar", category: "chat", type: "individual", seller: "official", durations: [1], price: 200000, badge: "popular", rating: 4.9, reviews: 1200, sold: 12500, rank: 1, addedAt: 1, logo: logos.openai,
     features: [
       "GPT-4o va eng yangi OpenAI modellariga kirish",
       "DALL-E bilan rasm yaratish",
@@ -109,7 +109,7 @@ export const catalogProducts: CatalogProduct[] = [
       "Ovozli suhbat rejimi",
       "Bepul versiyaga nisbatan yuqori limitlar",
     ] },
-  { id: "gemini-advanced", name: "Gemini Advanced", description: "Google’ning eng yangi AI modeli, 1.5 Pro, 2TB gacha imkoniyatlar", category: "chat", type: "individual", seller: "official", durations: [18], price: 129000, badge: "new", rating: 4.8, reviews: 760, sold: 6100, rank: 3, addedAt: 3, logo: logos.gemini,
+  { id: "gemini-advanced", name: "Gemini Advanced", description: "Google’ning eng yangi AI modeli, 1.5 Pro, 2TB gacha imkoniyatlar", category: "chat", type: "individual", seller: "official", durations: [18], price: 35000, badge: "new", rating: 4.8, reviews: 760, sold: 6100, rank: 3, addedAt: 3, logo: logos.gemini,
     features: [
       "Gemini 1.5 Pro — Google’ning eng kuchli modeli",
       "1 million tokengacha kontekst",
@@ -118,7 +118,7 @@ export const catalogProducts: CatalogProduct[] = [
       "Uzun hujjat va kodlarni tahlil qilish",
       "18 oy davomida to‘liq imkoniyatlar",
     ] },
-  { id: "capcut-pro", name: "CapCut Pro", description: "Premium shablonlar, AI video, tafsirlar, barcha funksiyalar", category: "design", type: "individual", seller: "warranty", durations: [1], price: 69000, badge: "popular", rating: 4.7, reviews: 650, sold: 9300, rank: 2, addedAt: 2, logo: logos.capcut,
+  { id: "capcut-pro", name: "CapCut Pro", description: "Premium shablonlar, AI video, tafsirlar, barcha funksiyalar", category: "design", type: "individual", seller: "warranty", durations: [1], price: 40000, badge: "popular", rating: 4.7, reviews: 650, sold: 9300, rank: 2, addedAt: 2, logo: logos.capcut,
     features: [
       "Barcha Pro shablon va effektlar",
       "AI video tahrirlash vositalari",

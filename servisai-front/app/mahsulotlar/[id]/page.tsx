@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import { HowItWorks } from "../../components/Sections";
-import { ArrowRight, Bolt, ChevronRight, Headset, Send, Shield, Star } from "../../components/icons";
+import { ArrowRight, Bolt, ChevronRight, Headset, Shield, Star } from "../../components/icons";
+import BuyButton from "./BuyButton";
 import {
   badgeStyles,
   catalogCategories,
@@ -16,9 +17,6 @@ import {
   productTypes,
   sellers,
 } from "../catalog-data";
-
-// Hozircha buyurtmalar Telegram orqali qabul qilinadi (to‘lov tizimi ulanmaguncha)
-const ORDER_URL = "https://t.me/servisaiuz";
 
 export function generateStaticParams() {
   return catalogProducts.map((p) => ({ id: p.id }));
@@ -111,14 +109,7 @@ export default async function ProductPage({ params }: PageProps<"/mahsulotlar/[i
               </div>
               <p className="mt-1 text-sm text-slate-500">{p.durations[0]} oylik obuna uchun</p>
 
-              <a
-                href={ORDER_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-brand-dark"
-              >
-                <Send className="size-4.5" /> Telegram orqali sotib olish
-              </a>
+              <BuyButton productId={p.id} duration={p.durations[0]} />
               <p className="mt-3 text-center text-xs text-slate-500">To‘lov: Click, Payme, Uzcard, Humo</p>
             </div>
 

@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Cart, Close, Logo, Menu, Search } from "./icons";
+import { useAuth } from "./auth/AuthProvider";
+import UserMenu, { accountLinks } from "./auth/UserMenu";
+import { Cart, Close, LogOut, Logo, Menu, Search } from "./icons";
 
 const links = [
   { href: "/", label: "Bosh sahifa" },
@@ -33,6 +35,7 @@ type HeaderProps = {
 export default function Header({ search, cartCount = 0 }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { user, openLogin, logout } = useAuth();
 
   const searchInput = search && (
     <label className="relative block w-full">
@@ -86,18 +89,7 @@ export default function Header({ search, cartCount = 0 }: HeaderProps) {
               </span>
             )}
           </button>
-          <a
-            href="#"
-            className="hidden whitespace-nowrap rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition hover:bg-brand-dark sm:inline-block"
-          >
-            Tizimga kirish
-          </a>
-          <a
-            href="#"
-            className="hidden whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition hover:ring-brand 2xl:inline-block"
-          >
-            Ro‘yxatdan o‘tish
-          </a>
+          <UserMenu />
           <button
             aria-label="Menyu"
             onClick={() => setOpen((v) => !v)}
@@ -125,13 +117,40 @@ export default function Header({ search, cartCount = 0 }: HeaderProps) {
               {l.label}
             </Link>
           ))}
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <a href="#" className="rounded-lg bg-brand px-3 py-2.5 text-center text-sm font-semibold text-white">
-              Tizimga kirish
-            </a>
-            <a href="#" className="rounded-lg px-3 py-2.5 text-center text-sm font-semibold text-slate-800 ring-1 ring-slate-200">
-              Ro‘yxatdan o‘tish
-            </a>
+          <div className="mt-2 border-t border-slate-100 pt-2">
+            {user ? (
+              <>
+                {accountLinks.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-brand-soft hover:text-brand"
+                  >
+                    <Icon className="size-4.5" /> {label}
+                  </Link>
+                ))}
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    logout();
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50"
+                >
+                  <LogOut className="size-4.5" /> Chiqish
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  openLogin();
+                }}
+                className="w-full rounded-lg bg-brand px-3 py-2.5 text-center text-sm font-semibold text-white"
+              >
+                Tizimga kirish
+              </button>
+            )}
           </div>
         </nav>
       )}

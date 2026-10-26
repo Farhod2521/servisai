@@ -19,3 +19,4 @@ media/
 # Node
 node_modules/
 .next/
+!.env.example

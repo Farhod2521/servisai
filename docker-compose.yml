@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-servisai}
+      POSTGRES_USER: ${POSTGRES_USER:-servisai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-servisai}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./servisai-back
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-servisai}:${POSTGRES_PASSWORD:-servisai}@db:5432/${POSTGRES_DB:-servisai}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  bot:
+    build: ./servisai-back
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-servisai}:${POSTGRES_PASSWORD:-servisai}@db:5432/${POSTGRES_DB:-servisai}
+      # Migratsiyalarni backend konteyneri bajaradi
+      RUN_MIGRATIONS: "0"
+    command: ["python", "-m", "app.bot"]
+    depends_on:
+      backend:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./servisai-front
+      args:
+        BACKEND_URL: http://backend:8000
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

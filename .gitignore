@@ -1,0 +1,21 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# env
+.env
+.env.*
+
+# Python (servisai-back)
+__pycache__/
+*.pyc
+venv/
+.venv/
+db.sqlite3
+media/
+
+# Node
+node_modules/
+.next/

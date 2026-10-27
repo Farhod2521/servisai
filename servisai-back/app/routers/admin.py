@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy import case, func, or_, select
 
 from ..deps import AdminUser, SessionDep
@@ -28,6 +28,7 @@ from ..schemas import (
     ProductUpdate,
     TopProductOut,
 )
+from ..logos import MAX_LOGO_SIZE, LogoError, delete_logo, save_logo
 from ..stock import attach_sold_counts, sync_pool_stock
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -295,11 +296,41 @@ async def update_product(product_id: str, data: ProductUpdate, _: AdminUser, ses
     return product
 
 
+@router.post("/products/{product_id}/logo", response_model=AdminProductOut)
+async def upload_logo(product_id: str, _: AdminUser, session: SessionDep, file: UploadFile = File(...)):
+    product = await _get(session, product_id)
+    try:
+        url = save_logo(await file.read(MAX_LOGO_SIZE + 1))
+    except LogoError as e:
+        raise HTTPException(e.status, e.message)
+    old, product.logo_url = product.logo_url, url
+    await session.commit()
+    delete_logo(old)
+    await session.refresh(product)
+    await attach_sold_counts(session, [product])
+    return product
+
+
+@router.delete("/products/{product_id}/logo", response_model=AdminProductOut)
+async def remove_logo(product_id: str, _: AdminUser, session: SessionDep):
+    """Yuklangan logoni olib tashlaydi — saytda yana standart logo ko‘rinadi."""
+    product = await _get(session, product_id)
+    old, product.logo_url = product.logo_url, None
+    await session.commit()
+    delete_logo(old)
+    await session.refresh(product)
+    await attach_sold_counts(session, [product])
+    return product
+
+
 @router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(product_id: str, _: AdminUser, session: SessionDep):
     # Buyurtmalar o‘chmaydi: product_id NULL bo‘ladi, nomi va narxi buyurtmada saqlanib qoladi
-    await session.delete(await _get(session, product_id))
+    product = await _get(session, product_id)
+    logo = product.logo_url
+    await session.delete(product)
     await session.commit()
+    delete_logo(logo)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

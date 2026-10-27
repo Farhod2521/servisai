@@ -81,6 +81,8 @@ class Product(TimestampMixin, Base):
     features: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list, server_default="{}")
     # Katalogdagi tartib (kichik = yuqorida)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Yuklangan logo (/api/media/logos/...); NULL — saytdagi standart logo
+    logo_url: Mapped[str | None] = mapped_column(String(255))
     # Saytdagi boshlang‘ich "sotib olganlar" soni; haqiqiy xaridlar shu songa qo‘shiladi
     sold_base: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # Sotuvdagi soni: NULL — cheklanmagan, 0 — tugagan (saytda oq-qora, sotib bo‘lmaydi)

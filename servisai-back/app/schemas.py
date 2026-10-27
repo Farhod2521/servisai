@@ -78,6 +78,7 @@ class ProductOut(ORM):
     old_price: int | None
     durations: list[int]
     duration_unit: str
+    logo_url: str | None
     category: str
     badge: str | None
     features: list[str]

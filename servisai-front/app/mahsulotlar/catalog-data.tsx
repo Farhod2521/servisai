@@ -154,8 +154,20 @@ const extras: Record<string, Extras> = {
 /** Build vaqtida oldindan tayyorlanadigan servis sahifalari */
 export const knownProductIds = Object.keys(extras);
 
+/** Admin yuklagan logo (rasm kvadratga sig‘diriladi) */
+function UploadedLogo({ src, name }: { src: string; name: string }) {
+  return (
+    <div className={`${tile} overflow-hidden bg-white ring-1 ring-slate-100`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- admin yuklagan rasm, o‘lchami kichik */}
+      <img src={src} alt={name} className="size-full object-cover" />
+    </div>
+  );
+}
+
 export function toCatalogProduct(p: Product): CatalogProduct {
-  return { ...p, ...(extras[p.id] ?? { logo: <FallbackLogo id={p.id} name={p.name} /> }) };
+  const base = { ...p, ...(extras[p.id] ?? { logo: <FallbackLogo id={p.id} name={p.name} /> }) };
+  // Yuklangan logo bo‘lsa — u ustun; aks holda chizilgan yoki harfli standart logo
+  return p.logo_url ? { ...base, logo: <UploadedLogo src={p.logo_url} name={p.name} /> } : base;
 }
 
 /** Banner uchun suzib turuvchi logolar */

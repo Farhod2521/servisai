@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Close } from "../components/icons";
 import { api, type AdminProduct, type DeliveryMode, type DurationUnit, type ProductBadge, type ProductCategory, type ProductInput } from "../lib/api";
 import {
@@ -61,6 +61,14 @@ export default function ProductForm({
   const [sortOrder, setSortOrder] = useState(product?.sort_order ?? nextSortOrder);
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
   // "" — cheklanmagan
+  // Logo: yangi tanlangan fayl yoki yuklangan logoni olib tashlash (saqlanganda bajariladi)
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const logoInput = useRef<HTMLInputElement>(null);
+  const logoPreview = useMemo(() => (logoFile ? URL.createObjectURL(logoFile) : null), [logoFile]);
+  useEffect(() => () => void (logoPreview && URL.revokeObjectURL(logoPreview)), [logoPreview]);
+  const currentLogo = logoPreview ?? (removeLogo ? null : (product?.logo_url ?? null));
   const [stock, setStock] = useState(product?.stock === null || product?.stock === undefined ? "" : String(product.stock));
   const [soldBase, setSoldBase] = useState(String(product?.sold_base ?? 0));
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>(product?.delivery_mode ?? "manual");
@@ -131,9 +139,16 @@ export default function ProductForm({
     setBusy(true);
     setError(null);
     try {
-      const saved = isNew
+      let saved = isNew
         ? await api<AdminProduct>("/admin/products", { method: "POST", json: { ...body, id: slug } })
         : await api<AdminProduct>(`/admin/products/${product.id}`, { method: "PATCH", json: body });
+      if (logoFile) {
+        const form = new FormData();
+        form.append("file", logoFile);
+        saved = await api<AdminProduct>(`/admin/products/${saved.id}/logo`, { method: "POST", body: form });
+      } else if (removeLogo && saved.logo_url) {
+        saved = await api<AdminProduct>(`/admin/products/${saved.id}/logo`, { method: "DELETE" });
+      }
       onSaved(saved);
     } catch (err) {
       setError((err as Error).message);
@@ -149,6 +164,7 @@ export default function ProductForm({
     old_price: oldPrice,
     durations: durations.length ? durations : [1],
     duration_unit: durationUnit,
+    logo_url: currentLogo,
     category,
     badge: badge || null,
     features: [],
@@ -200,6 +216,56 @@ export default function ProductForm({
                 placeholder="chatgpt-plus"
                 className={`${inputCls} font-mono`}
               />
+            </Field>
+
+            <Field label="Logo" hint="PNG, JPG yoki WEBP, 2 MB gacha (kvadrat rasm yaxshi ko‘rinadi). Yuklanmasa — standart logo.">
+              <div className="flex items-center gap-4">
+                <div className="size-16 shrink-0 text-sm">{preview.logo}</div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => logoInput.current?.click()}
+                    className="rounded-xl bg-brand-soft px-4 py-2 text-sm font-semibold text-brand ring-1 ring-brand/20 hover:ring-brand"
+                  >
+                    {currentLogo ? "Boshqa logo" : "Logo yuklash"}
+                  </button>
+                  {currentLogo && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLogoFile(null);
+                        setRemoveLogo(true);
+                        if (logoInput.current) logoInput.current.value = "";
+                      }}
+                      className="rounded-xl px-4 py-2 text-sm font-semibold text-rose-600 ring-1 ring-slate-200 hover:bg-rose-50"
+                    >
+                      Olib tashlash
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={logoInput}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    setLogoError(null);
+                    if (!f) return;
+                    if (!["image/png", "image/jpeg", "image/webp"].includes(f.type)) {
+                      setLogoError("Logo PNG, JPG yoki WEBP bo‘lishi kerak");
+                      return;
+                    }
+                    if (f.size > 2 * 1024 * 1024) {
+                      setLogoError("Logo hajmi 2 MB dan oshmasligi kerak");
+                      return;
+                    }
+                    setRemoveLogo(false);
+                    setLogoFile(f);
+                  }}
+                />
+              </div>
+              {logoError && <p className="mt-1.5 text-xs text-rose-600">{logoError}</p>}
             </Field>
 
             <Field label="Tavsif" hint="Katalog kartochkasi va servis sahifasida ko‘rinadi">

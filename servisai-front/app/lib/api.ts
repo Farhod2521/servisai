@@ -98,6 +98,8 @@ export type Product = {
   durations: number[];
   /** durations birligi: month — oy, day — kun */
   duration_unit: DurationUnit;
+  /** Admin yuklagan logo; null — saytdagi standart logo */
+  logo_url: string | null;
   category: ProductCategory;
   badge: ProductBadge | null;
   features: string[];
@@ -138,7 +140,7 @@ export type DeliveryItem = {
 };
 
 /** Yaratish/tahrirlash so‘rovi (id faqat yaratishda yuboriladi) */
-export type ProductInput = Omit<AdminProduct, "id" | "created_at" | "updated_at" | "sold_count" | "instant_delivery"> & { id?: string };
+export type ProductInput = Omit<AdminProduct, "id" | "created_at" | "updated_at" | "sold_count" | "instant_delivery" | "logo_url"> & { id?: string };
 
 export type AdminStats = {
   users_total: number;

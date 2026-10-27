@@ -4,17 +4,20 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import Header from "../components/Header";
 import { Cart, ChevronDown, ChevronRight, Grid, Heart, ListIcon, Star } from "../components/icons";
+import type { ProductCategory } from "../lib/api";
+import { useProducts } from "../lib/products";
 import {
   badgeStyles,
   bannerLogos,
   catalogCategories,
-  catalogProducts,
   discountPercent,
   formatCount,
   formatPrice,
+  isSoldOut,
   productTypes,
   sellers,
-  type CatalogCategory,
+  stockLabel,
+  toCatalogProduct,
   type CatalogProduct,
 } from "./catalog-data";
 
@@ -22,41 +25,41 @@ const sortOptions = [
   { id: "popular", label: "Ommabop" },
   { id: "cheap", label: "Arzonroq" },
   { id: "expensive", label: "Qimmatroq" },
-  { id: "rating", label: "Reyting bo‘yicha" },
-  { id: "new", label: "Yangilari" },
 ] as const;
 type SortId = (typeof sortOptions)[number]["id"];
 
-
 export default function Catalog() {
+  const { products: apiProducts, error, loading } = useProducts();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<CatalogCategory | "all">("all");
+  const [category, setCategory] = useState<ProductCategory | "all">("all");
   const [sort, setSort] = useState<SortId>("popular");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
+  // API tartibi (admin bergan sort_order) "Ommabop" saralash sifatida ishlatiladi
+  const products = useMemo(() => (apiProducts ?? []).map(toCatalogProduct), [apiProducts]);
+
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: catalogProducts.length };
-    for (const p of catalogProducts) counts[p.category] = (counts[p.category] ?? 0) + 1;
+    const counts: Record<string, number> = { all: products.length };
+    for (const p of products) counts[p.category] = (counts[p.category] ?? 0) + 1;
     return counts;
-  }, []);
+  }, [products]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = catalogProducts.filter(
+    const list = products.filter(
       (p) =>
         (category === "all" || p.category === category) &&
         (!q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)),
     );
-    const sorters: Record<SortId, (a: CatalogProduct, b: CatalogProduct) => number> = {
-      popular: (a, b) => a.rank - b.rank,
+    const sorters: Record<SortId, ((a: CatalogProduct, b: CatalogProduct) => number) | null> = {
+      popular: null,
       cheap: (a, b) => a.price - b.price,
       expensive: (a, b) => b.price - a.price,
-      rating: (a, b) => b.rating - a.rating || b.reviews - a.reviews,
-      new: (a, b) => b.addedAt - a.addedAt,
     };
-    return list.sort(sorters[sort]);
-  }, [query, category, sort]);
+    const sorter = sorters[sort];
+    return sorter ? list.sort(sorter) : list;
+  }, [products, query, category, sort]);
 
   const resetFilters = () => {
     setQuery("");
@@ -71,7 +74,7 @@ export default function Catalog() {
       return next;
     });
 
-  const activeCategory = catalogCategories.find((c) => c.id === category)!;
+  const activeCategory = catalogCategories.find((c) => c.id === category) ?? catalogCategories[0];
   // Mahsuloti yo‘q kategoriyalar ko‘rsatilmaydi
   const shownCategories = catalogCategories.filter((c) => categoryCounts[c.id]);
 
@@ -122,7 +125,7 @@ export default function Catalog() {
         {/* Toolbar */}
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <p className="font-semibold">
-            {visible.length} ta mahsulot topildi
+            {loading ? "Yuklanmoqda..." : `${visible.length} ta mahsulot topildi`}
             {query.trim() && <span className="font-normal text-muted"> “{query.trim()}” bo‘yicha</span>}
           </p>
 
@@ -156,7 +159,21 @@ export default function Catalog() {
         </div>
 
         {/* Mahsulotlar */}
-        {visible.length > 0 ? (
+        {loading ? (
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[420px] animate-pulse rounded-3xl bg-white ring-1 ring-slate-100" />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="mt-5 rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-100">
+            <p className="text-lg font-semibold">Servislarni yuklab bo‘lmadi</p>
+            <p className="mt-1 text-sm text-muted">{error}</p>
+            <button onClick={() => location.reload()} className="mt-5 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white">
+              Qayta urinish
+            </button>
+          </div>
+        ) : visible.length > 0 ? (
           <div className={view === "grid" ? "mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" : "mt-5 space-y-4"}>
             {visible.map((p) => (
               <ProductCard
@@ -198,8 +215,10 @@ function ProductCard({
   const discount = discountPercent(p);
   const badge = p.badge && badgeStyles[p.badge];
   const durationLabel = `${p.durations.join("/")} oy`;
-  const sellerLabel = sellers.find((s) => s.id === p.seller)!.short;
-  const typeLabel = productTypes.find((t) => t.id === p.type)!.short;
+  const sellerLabel = sellers.find((s) => s.id === p.seller)?.short;
+  const typeLabel = productTypes.find((t) => t.id === p.type)?.short;
+  const soldOut = isSoldOut(p);
+  const stock = stockLabel(p);
 
   const heart = (
     <button
@@ -215,13 +234,17 @@ function ProductCard({
   const badges = (
     <div className="flex flex-col items-end gap-1.5">
       {badge && <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${badge.className}`}>{badge.label}</span>}
-      {discount > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">-{discount}%</span>}
+      {soldOut ? (
+        <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">Tugagan</span>
+      ) : (
+        discount > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">-{discount}%</span>
+      )}
     </div>
   );
 
   const chips = (
     <div className="flex flex-wrap gap-1.5">
-      {[sellerLabel, typeLabel, durationLabel].map((c) => (
+      {[sellerLabel, typeLabel, durationLabel].filter(Boolean).map((c) => (
         <span key={c} className="rounded-md bg-slate-50 px-2 py-1 text-[11px] text-slate-500 ring-1 ring-slate-100">{c}</span>
       ))}
     </div>
@@ -231,24 +254,45 @@ function ProductCard({
     <div>
       <p className="flex flex-wrap items-baseline gap-x-2">
         <span className="text-xl font-bold">{formatPrice(p.price)} so‘m</span>
-        {p.oldPrice && <span className="text-xs text-slate-400 line-through">{formatPrice(p.oldPrice)} so‘m</span>}
+        {p.old_price && <span className="text-xs text-slate-400 line-through">{formatPrice(p.old_price)} so‘m</span>}
       </p>
       <p className="text-xs text-slate-400">/ {p.durations[0]} oy</p>
+      {stock && (
+        <p
+          className={`mt-1 text-xs font-semibold ${
+            soldOut ? "text-slate-500" : p.stock !== null && p.stock <= 3 ? "text-amber-600" : "text-emerald-600"
+          }`}
+        >
+          {stock}
+        </p>
+      )}
     </div>
   );
 
-  const stats = (
+  // Reyting faqat ma’lumoti bor servislarda, sotuvlar soni hammasida (bo‘lsa) ko‘rsatiladi
+  const stats = (p.rating !== undefined || p.sold_count > 0) && (
     <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
-      <span className="flex items-center gap-1">
-        <Star className="size-4 text-amber-400" /> {p.rating.toFixed(1)} ({formatCount(p.reviews)})
-      </span>
-      <span>{formatCount(p.sold)}+ sotilgan</span>
+      {p.rating !== undefined ? (
+        <span className="flex items-center gap-1">
+          <Star className="size-4 text-amber-400" /> {p.rating.toFixed(1)} ({formatCount(p.reviews ?? 0)})
+        </span>
+      ) : (
+        <span />
+      )}
+      {p.sold_count > 0 && <span>{formatCount(p.sold_count)} ta sotilgan</span>}
     </div>
   );
 
   const href = `/mahsulotlar/${p.id}`;
 
-  const buy = (
+  const buy = soldOut ? (
+    <span
+      aria-disabled="true"
+      className="flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-slate-800 py-3 text-sm font-semibold text-white/90"
+    >
+      Hozircha tugagan
+    </span>
+  ) : (
     <Link
       href={href}
       className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white transition hover:bg-brand-dark active:scale-[0.98]"
@@ -256,16 +300,23 @@ function ProductCard({
       <Cart className="size-4.5" /> Sotib olish
     </Link>
   );
+  const cardTone = soldOut
+    ? "bg-slate-50 ring-slate-200 grayscale"
+    : "bg-white shadow-sm ring-slate-100 hover:shadow-lg hover:shadow-blue-900/5";
 
   if (view === "list") {
     return (
-      <article className="flex flex-col gap-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100 transition hover:shadow-lg hover:shadow-blue-900/5 sm:flex-row sm:items-center">
+      <article className={`flex flex-col gap-5 rounded-3xl p-5 ring-1 transition sm:flex-row sm:items-center ${cardTone}`}>
         <Link href={href} className="size-20 shrink-0">{p.logo}</Link>
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold"><Link href={href} className="hover:text-brand">{p.name}</Link></h3>
             {badge && <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${badge.className}`}>{badge.label}</span>}
-            {discount > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">-{discount}%</span>}
+            {soldOut ? (
+              <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">Tugagan</span>
+            ) : (
+              discount > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">-{discount}%</span>
+            )}
           </div>
           <p className="text-sm text-slate-500">{p.description}</p>
           {chips}
@@ -283,7 +334,7 @@ function ProductCard({
   }
 
   return (
-    <article className="flex flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-900/5">
+    <article className={`flex flex-col rounded-3xl p-4 ring-1 transition ${cardTone} ${soldOut ? "" : "hover:-translate-y-0.5"}`}>
       <div className="flex items-start justify-between gap-2">
         <Link href={href} className="size-[72px] shrink-0">{p.logo}</Link>
         <div className="flex items-start gap-1">
@@ -295,7 +346,7 @@ function ProductCard({
       <p className="mt-1 line-clamp-2 min-h-10 text-sm text-slate-500">{p.description}</p>
       <div className="mt-3">{chips}</div>
       <div className="mt-4 flex-1">{price}</div>
-      <div className="mt-3">{stats}</div>
+      {stats && <div className="mt-3">{stats}</div>}
       <div className="mt-3">{buy}</div>
     </article>
   );

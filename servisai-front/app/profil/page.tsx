@@ -12,7 +12,7 @@ export default function ProfilePage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 sm:px-6">
         <Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-white" />}>
           <Profile />
         </Suspense>

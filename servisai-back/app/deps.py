@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .accounts import is_configured_admin
 from .database import get_session
 from .models import User
 from .security import decode_access_token
@@ -24,6 +25,12 @@ async def get_optional_user(
     user = await session.get(User, user_id)
     if user is None or not user.is_active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Foydalanuvchi topilmadi")
+    # Admin ro‘yxati (.env) har so‘rovda tekshiriladi: qayta kirish shart emas,
+    # ro‘yxatdan olib tashlangan ID esa huquqini darhol yo‘qotadi
+    admin = is_configured_admin(user)
+    if user.is_admin != admin:
+        user.is_admin = admin
+        await session.commit()
     return user
 
 
@@ -34,7 +41,7 @@ async def get_current_user(user: Annotated[User | None, Depends(get_optional_use
 
 
 async def get_admin_user(user: Annotated[User, Depends(get_current_user)]) -> User:
-    if not user.is_admin:
+    if not is_configured_admin(user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Faqat administratorlar uchun")
     return user
 

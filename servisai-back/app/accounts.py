@@ -7,21 +7,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import settings
 from .models import User
+from .referrals import on_signup
 
 
 class AccountConflict(Exception):
     pass
 
 
+def is_configured_admin(user: User) -> bool:
+    """Admin huquqi faqat .env dagi ADMIN_TELEGRAM_IDS / ADMIN_EMAILS ro‘yxati bilan belgilanadi."""
+    return bool(
+        (user.telegram_id and user.telegram_id in settings.admin_telegram_id_list)
+        or (user.email and user.email.lower() in settings.admin_email_list)
+    )
+
+
 def _apply_admin(user: User) -> None:
-    if (user.email and user.email.lower() in settings.admin_email_list) or (
-        user.telegram_id and user.telegram_id in settings.admin_telegram_id_list
-    ):
-        user.is_admin = True
+    user.is_admin = is_configured_admin(user)
 
 
 async def upsert_google_user(
-    session: AsyncSession, *, google_id: str, email: str | None, name: str, picture: str | None, link_to: User | None = None
+    session: AsyncSession,
+    *,
+    google_id: str,
+    email: str | None,
+    name: str,
+    picture: str | None,
+    link_to: User | None = None,
+    ref_code: str | None = None,
 ) -> User:
     user = await session.scalar(select(User).where(User.google_id == google_id))
 
@@ -33,6 +46,7 @@ async def upsert_google_user(
         # Shu email bilan avval ro‘yxatdan o‘tgan bo‘lsa, Google’ni o‘sha profilga bog‘laymiz
         user = await session.scalar(select(User).where(User.email == email))
 
+    created = user is None
     if user is None:
         user = User(full_name=name)
         session.add(user)
@@ -49,6 +63,9 @@ async def upsert_google_user(
     user.last_login_at = datetime.now(timezone.utc)
     _apply_admin(user)
     await session.flush()
+    if created:
+        # Taklif havolasi orqali kelgan bo‘lsa; xabarlar commit’dan keyin notify_referral(user) bilan yuboriladi
+        await on_signup(session, user, ref_code)
     return user
 
 
@@ -60,6 +77,7 @@ async def upsert_telegram_user(
     last_name: str | None,
     username: str | None,
     link_to: User | None = None,
+    ref_code: str | None = None,
 ) -> User:
     user = await session.scalar(select(User).where(User.telegram_id == telegram_id))
     name = " ".join(p for p in (first_name, last_name) if p).strip() or (username or "Foydalanuvchi")
@@ -69,6 +87,7 @@ async def upsert_telegram_user(
             raise AccountConflict("Bu Telegram hisobi boshqa profilga ulangan")
         user = link_to
 
+    created = user is None
     if user is None:
         user = User(full_name=name)
         session.add(user)
@@ -80,4 +99,7 @@ async def upsert_telegram_user(
     user.last_login_at = datetime.now(timezone.utc)
     _apply_admin(user)
     await session.flush()
+    if created:
+        # Taklif havolasi orqali kelgan bo‘lsa; xabarlar commit’dan keyin notify_referral(user) bilan yuboriladi
+        await on_signup(session, user, ref_code)
     return user

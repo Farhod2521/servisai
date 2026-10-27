@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from ..deps import AdminUser, CurrentUser, SessionDep
 from ..models import Order, OrderEvent, OrderStatus, Product, TransactionType, User
-from ..notify import format_price, notify_order_created, notify_order_status
+from ..notify import notify_order_created, notify_order_status
 from ..schemas import (
     HistoryItemOut,
     OrderCreate,
@@ -13,7 +13,9 @@ from ..schemas import (
     OrderOut,
     OrderStatusUpdate,
 )
-from ..wallet import InsufficientFunds, change_balance
+from ..shop import ShopError, place_order
+from ..stock import give_back, was_auto_delivered
+from ..wallet import change_balance
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 admin_router = APIRouter(prefix="/admin/orders", tags=["admin"])
@@ -32,43 +34,19 @@ async def _get_order(session: SessionDep, order_id: int, user_id: int | None = N
 @router.post("", response_model=OrderDetailOut, status_code=status.HTTP_201_CREATED)
 async def create_order(data: OrderCreate, user: CurrentUser, session: SessionDep, background: BackgroundTasks):
     product = await session.get(Product, data.product_id)
-    if product is None or not product.is_active:
+    if product is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Mahsulot topilmadi")
-    duration = data.duration_months or product.durations[0]
-    if duration not in product.durations:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Bu muddat mavjud emas")
-
-    # Buyurtma hisobdagi mablag‘ orqali darhol to‘lanadi
-    order = Order(
-        user_id=user.id,
-        product_id=product.id,
-        product_name=product.name,
-        duration_months=duration,
-        price=product.price,
-        comment=data.comment,
-        status=OrderStatus.paid,
-        paid_from_balance=True,
-        events=[
-            OrderEvent(status=OrderStatus.pending, note="Buyurtma yaratildi"),
-            OrderEvent(status=OrderStatus.paid, note="Hisobdan to‘landi"),
-        ],
-    )
-    session.add(order)
-    await session.flush()
+    delivery_time = product.delivery_time
     try:
-        user = await change_balance(
-            session, user.id, -product.price, TransactionType.purchase, note=f"{product.name} xaridi", order_id=order.id
+        order = await place_order(
+            session, user, product, quantity=data.quantity, duration=data.duration_months, comment=data.comment
         )
-    except InsufficientFunds as e:
-        price = product.price
-        await session.rollback()
-        raise HTTPException(
-            status.HTTP_402_PAYMENT_REQUIRED,
-            f"Hisobingizda mablag‘ yetarli emas. Balans: {format_price(e.balance)} so‘m, kerak: {format_price(price)} so‘m",
-        )
+    except ShopError as e:
+        raise HTTPException(e.status, e.message)
     await session.commit()
     order = await _get_order(session, order.id)
-    background.add_task(notify_order_created, order, user)
+    user = await session.get(User, user.id)
+    background.add_task(notify_order_created, order, user, delivery_time)
     return order
 
 
@@ -132,6 +110,8 @@ async def cancel_order(order_id: int, user: CurrentUser, session: SessionDep):
         raise HTTPException(status.HTTP_409_CONFLICT, "Faqat to‘lov kutilayotgan buyurtmani bekor qilish mumkin")
     order.status = OrderStatus.cancelled
     order.events.append(OrderEvent(status=OrderStatus.cancelled, note="Mijoz tomonidan bekor qilindi"))
+    if not await was_auto_delivered(session, order.id):
+        await give_back(session, order.product_id, order.quantity)
     await session.commit()
     return await _get_order(session, order_id)
 
@@ -148,6 +128,9 @@ async def admin_update_status(
             session, order.user_id, order.price, TransactionType.refund, note=f"{order.number} bekor qilindi", order_id=order.id
         )
         data.note = (data.note + "\n" if data.note else "") + "Mablag‘ hisobga qaytarildi"
+    if data.status == OrderStatus.cancelled:
+        if not await was_auto_delivered(session, order.id):
+            await give_back(session, order.product_id, order.quantity)
     order.status = data.status
     if data.delivery_info is not None:
         order.delivery_info = data.delivery_info

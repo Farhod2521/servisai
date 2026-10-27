@@ -1,3 +1,6 @@
+# Serverdagi boshqa loyihalar bilan nomlar (konteyner, tarmoq, volume) to‘qnashmasligi uchun
+name: servisai
+
 services:
   db:
     image: postgres:16-alpine
@@ -27,7 +30,8 @@ services:
       # Yuborilgan chek rasmlari
       - media:/app/media
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      # Faqat shu kompyuter/server ichidan (nginx orqali) ochiq — internetga to‘g‘ridan-to‘g‘ri chiqmaydi
+      - "${BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
 
   bot:
     build: ./servisai-back
@@ -51,7 +55,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"
 
 volumes:
   pgdata:

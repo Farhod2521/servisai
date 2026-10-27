@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { api, type AuthConfig, type TelegramInit, type TelegramStatus, type TokenResponse, type User } from "../../lib/api";
-import { Close, Logo, Send } from "../icons";
+import { api, type AuthConfig, type TelegramInit, type TelegramStatus, type TokenResponse, type User, refStore } from "../../lib/api";
+import { Close, Send } from "../icons";
+import LogoMark from "../LogoMark";
 import { useAuth } from "./AuthProvider";
 
 type GoogleId = {
@@ -86,7 +87,7 @@ export default function LoginModal({ link, onClose, onSuccess }: Props) {
                 h.setUser(user);
                 h.onSuccess(user);
               } else {
-                const res = await api<TokenResponse>("/auth/google", { method: "POST", json: { credential } });
+                const res = await api<TokenResponse>("/auth/google", { method: "POST", json: { credential, ref: refStore.get() } });
                 h.setSession(res.access_token, res.user);
                 h.onSuccess(res.user);
               }
@@ -151,7 +152,8 @@ export default function LoginModal({ link, onClose, onSuccess }: Props) {
     // Popup bloklanmasligi uchun oynani darhol (sinxron) ochamiz, havolani keyin beramiz
     const win = window.open("", "_blank");
     try {
-      const res = await api<TelegramInit>("/auth/telegram/init", { method: "POST" });
+      const ref = refStore.get();
+      const res = await api<TelegramInit>(`/auth/telegram/init${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`, { method: "POST" });
       setTelegram(res);
       if (win) win.location.href = res.bot_url;
     } catch (e) {
@@ -180,7 +182,7 @@ export default function LoginModal({ link, onClose, onSuccess }: Props) {
         </button>
 
         <div className="flex flex-col items-center text-center">
-          <Logo className="size-12" />
+          <LogoMark className="h-14 w-auto" />
           <h2 id="login-title" className="mt-4 text-2xl font-bold">
             {link ? "Hisobni ulash" : "Tizimga kirish"}
           </h2>

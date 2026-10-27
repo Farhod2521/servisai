@@ -1,7 +1,7 @@
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from fastapi.concurrency import run_in_threadpool
 from google.auth.exceptions import GoogleAuthError
 from google.auth.transport import requests as google_requests
@@ -11,6 +11,7 @@ from ..accounts import AccountConflict, upsert_google_user
 from ..config import settings
 from ..deps import CurrentUser, OptionalUser, SessionDep
 from ..models import TelegramLoginSession, TelegramLoginStatus, User
+from ..referrals import normalize_code, notify_referral
 from ..schemas import (
     AuthConfigOut,
     GoogleLoginIn,
@@ -54,7 +55,7 @@ async def _verify_google(credential: str) -> dict:
 
 
 @router.post("/google", response_model=TokenOut)
-async def google_login(data: GoogleLoginIn, session: SessionDep):
+async def google_login(data: GoogleLoginIn, session: SessionDep, background: BackgroundTasks):
     info = await _verify_google(data.credential)
     user = await upsert_google_user(
         session,
@@ -62,8 +63,10 @@ async def google_login(data: GoogleLoginIn, session: SessionDep):
         email=info.get("email"),
         name=info.get("name") or info.get("email", "").split("@")[0],
         picture=info.get("picture"),
+        ref_code=data.ref,
     )
     await session.commit()
+    background.add_task(notify_referral, user)
     return _token_response(user)
 
 
@@ -87,7 +90,7 @@ async def google_link(data: GoogleLoginIn, session: SessionDep, user: CurrentUse
 
 
 @router.post("/telegram/init", response_model=TelegramInitOut)
-async def telegram_init(session: SessionDep, user: OptionalUser):
+async def telegram_init(session: SessionDep, user: OptionalUser, ref: str | None = Query(default=None, max_length=32)):
     """Bir martalik token yaratadi. Foydalanuvchi botga /start <token> yuborganda kirish tasdiqlanadi.
 
     Agar so‘rov token bilan kelsa (foydalanuvchi allaqachon tizimda), Telegram uning profiliga ulanadi.
@@ -99,6 +102,7 @@ async def telegram_init(session: SessionDep, user: OptionalUser):
         TelegramLoginSession(
             token=token,
             link_user_id=user.id if user else None,
+            ref_code=normalize_code(ref),
             expires_at=datetime.now(timezone.utc) + timedelta(seconds=settings.telegram_login_ttl),
         )
     )

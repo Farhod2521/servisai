@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "./auth/AuthProvider";
-import UserMenu, { accountLinks } from "./auth/UserMenu";
-import { Cart, Close, LogOut, Logo, Menu, Search } from "./icons";
+import UserMenu, { accountLinksFor } from "./auth/UserMenu";
+import { Cart, Close, LogOut, Menu, Search } from "./icons";
+import LogoMark from "./LogoMark";
 
 const links = [
   { href: "/", label: "Bosh sahifa" },
@@ -17,10 +18,12 @@ const links = [
 
 export function Brand() {
   return (
-    <Link href="/" className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight">
-      <Logo className="size-8" />
-      <span>
-        servis<span className="text-brand">ai</span>.uz
+    <Link href="/" aria-label="servisai.uz — bosh sahifa" className="flex shrink-0 items-center gap-1.5">
+      <LogoMark className="h-9 w-auto" preload />
+      <span className="text-[1.4rem] font-extrabold tracking-tight text-[#0b1437]">
+        servis
+        <span className="bg-gradient-to-b from-[#2f8bff] to-[#0b5cff] bg-clip-text text-transparent">ai</span>
+        .uz
       </span>
     </Link>
   );
@@ -120,7 +123,7 @@ export default function Header({ search, cartCount = 0 }: HeaderProps) {
           <div className="mt-2 border-t border-slate-100 pt-2">
             {user ? (
               <>
-                {accountLinks.map(({ href, label, icon: Icon }) => (
+                {accountLinksFor(user).map(({ href, label, icon: Icon }) => (
                   <Link
                     key={href}
                     href={href}

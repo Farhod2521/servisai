@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../components/auth/AuthProvider";
 import { Avatar } from "../components/auth/UserMenu";
-import { GoogleLogo, History, LogOut, Receipt, Send, UserIcon, Wallet } from "../components/icons";
+import { ArrowRight, Gift, GoogleLogo, History, LogOut, Receipt, Send, UserIcon, Wallet } from "../components/icons";
 import { formatPrice } from "../mahsulotlar/catalog-data";
 import {
   api,
@@ -20,13 +20,16 @@ import {
   type UserStats,
 } from "../lib/api";
 import { Card, Empty, ErrorText } from "./ui";
+import ReferralTab from "./ReferralTab";
 import WalletTab from "./WalletTab";
+import Linkify from "../components/Linkify";
 
 const tabs = [
   { id: "profil", label: "Profil", icon: UserIcon },
   { id: "hisob", label: "Hisobim", icon: Wallet },
   { id: "buyurtmalar", label: "Mening buyurtmalarim", icon: Receipt },
   { id: "tarix", label: "Buyurtmalar tarixi", icon: History },
+  { id: "dostlar", label: "Do‘stlarni taklif qilish", icon: Gift },
 ] as const;
 
 type Tab = (typeof tabs)[number]["id"];
@@ -89,6 +92,7 @@ export default function Profile() {
             <LogOut className="size-4.5" /> Chiqish
           </button>
         </nav>
+        <BotCard />
       </aside>
 
       <section className="min-w-0">
@@ -96,12 +100,48 @@ export default function Profile() {
         {tab === "hisob" && <WalletTab />}
         {tab === "buyurtmalar" && <OrdersTab />}
         {tab === "tarix" && <HistoryTab />}
+        {tab === "dostlar" && <ReferralTab />}
       </section>
     </div>
   );
 }
 
 /* ---------- Umumiy ---------- */
+
+/** Chap menyu ostidagi Telegram bot kartochkasi (bot sozlanmagan bo‘lsa ko‘rsatilmaydi) */
+function BotCard() {
+  const [bot, setBot] = useState<string | null>(null);
+
+  useEffect(() => {
+    api<AuthConfig>("/auth/config")
+      .then((c) => setBot(c.telegram_bot_username))
+      .catch(() => {});
+  }, []);
+
+  if (!bot) return null;
+
+  return (
+    <div className="mt-6 hidden rounded-2xl bg-gradient-to-br from-slate-50 to-brand-soft/60 p-4 ring-1 ring-slate-100 lg:block">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-bold">ServisAI Bot</p>
+          <p className="mt-1 text-sm leading-snug text-slate-500">Telegram bot orqali ham buyurtma va balansingizni kuzating.</p>
+        </div>
+        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#3b8cff] to-brand text-white shadow-lg shadow-blue-600/30">
+          <Send className="size-6" />
+        </span>
+      </div>
+      <a
+        href={`https://t.me/${bot}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-brand shadow-sm ring-1 ring-brand/30 transition hover:ring-brand"
+      >
+        Botni ochish <ArrowRight className="size-4" />
+      </a>
+    </div>
+  );
+}
 
 function StatusBadge({ status }: { status: OrderStatus }) {
   const m = statusMeta[status];
@@ -120,6 +160,12 @@ function ProfileTab({ user, onSelect }: { user: User; onSelect: (tab: Tab) => vo
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [name, setName] = useState(user.full_name);
   const [phone, setPhone] = useState(user.phone ?? "");
+  // Raqam keyinroq kelsa (masalan, Telegram botda yuborilsa) bo‘sh maydonga yoziladi
+  const [knownPhone, setKnownPhone] = useState(user.phone);
+  if (user.phone !== knownPhone) {
+    setKnownPhone(user.phone);
+    if (!phone.trim() && user.phone) setPhone(user.phone);
+  }
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -399,6 +445,7 @@ function OrderRow({
           <p className="truncate font-semibold">{order.product_name}</p>
           <p className="mt-0.5 text-xs text-slate-500">
             {order.number} · {formatDate(order.created_at)} · {order.duration_months} oy
+            {order.quantity > 1 && ` · ${order.quantity} ta`}
           </p>
         </div>
         <p className="font-bold">{formatPrice(order.price)} so‘m</p>
@@ -421,7 +468,9 @@ function OrderRow({
                 {detail.delivery_info && (
                   <div className="rounded-xl bg-emerald-50 p-3.5">
                     <p className="font-semibold text-emerald-800">Faollashtirish ma’lumotlari</p>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-emerald-900">{detail.delivery_info}</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-emerald-900">
+                      <Linkify text={detail.delivery_info} />
+                    </p>
                   </div>
                 )}
                 {detail.comment && (

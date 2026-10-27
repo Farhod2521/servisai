@@ -88,26 +88,43 @@ async def send_message(chat_id: int | str, text: str) -> None:
         log.warning("Telegramga xabar yuborib bo‘lmadi", exc_info=True)
 
 
-async def notify_order_created(order: Order, user: User) -> None:
+def _delivery_block(order: Order) -> str:
+    return f"\n\n📦 <b>Sizning ma’lumotlaringiz:</b>\n{html.escape(order.delivery_info)}" if order.delivery_info else ""
+
+
+async def notify_order_created(order: Order, user: User, delivery_time: str, *, notify_user: bool = True) -> None:
     summary = (
-        f"<b>{order.number}</b> — {html.escape(order.product_name)} ({order.duration_months} oy)\n"
+        f"<b>{order.number}</b> — {html.escape(order.product_name)} ({order.duration_months} oy)"
+        + (f" × {order.quantity} ta" if order.quantity > 1 else "")
+        + "\n"
         f"Narxi: {format_price(order.price)} so‘m"
     )
-    if user.telegram_id:
-        await send_message(
-            user.telegram_id,
-            f"🛒 Buyurtmangiz qabul qilindi!\n\n{summary}\n\n"
-            + ("Summa hisobingizdan yechildi. " if order.paid_from_balance else "")
-            + "Faollashtirish bo‘yicha operator tez orada bog‘lanadi.",
-        )
+    done = order.status == OrderStatus.completed
+    # Botda xarid qilinganda mijoz natijani o‘sha yerda ko‘radi — faqat admin xabardor qilinadi
+    if user.telegram_id and notify_user:
+        if done:
+            text = f"🎉 Buyurtmangiz tayyor!\n\n{summary}{_delivery_block(order)}\n\nMa’lumotlar saytdagi «Buyurtmalarim» bo‘limida ham saqlanadi."
+        else:
+            text = (
+                f"🛒 Buyurtmangiz qabul qilindi!\n\n{summary}\n\n"
+                + ("Summa hisobingizdan yechildi.\n" if order.paid_from_balance else "")
+                + f"⏳ Yetkazib berish vaqti: <b>{html.escape(delivery_time)}</b>\n"
+                "Tayyor bo‘lgach, shu bot orqali va saytdagi «Buyurtmalarim» bo‘limida yuboramiz."
+            )
+        await send_message(user.telegram_id, text)
     paid = "\n💳 Hisobdan to‘landi" if order.paid_from_balance else ""
-    await send_message(settings.telegram_admin_chat_id, f"🆕 Yangi buyurtma\n\n{summary}{paid}\nMijoz: {user_contact(user)}")
+    state = "\n✅ Avtomatik yetkazildi" if done else "\n⏳ Yetkazib berish kerak (admin panel → Buyurtmalar)"
+    await send_message(
+        settings.telegram_admin_chat_id, f"🆕 Yangi buyurtma\n\n{summary}{paid}{state}\nMijoz: {user_contact(user)}"
+    )
 
 
 async def notify_order_status(order: Order, user: User, note: str | None) -> None:
     if not user.telegram_id:
         return
     text = f"<b>{order.number}</b> — {html.escape(order.product_name)}\nHolati: {STATUS_LABELS[order.status]}"
+    if order.status == OrderStatus.completed:
+        text = "🎉 Buyurtmangiz tayyor!\n\n" + text + _delivery_block(order)
     if note:
         text += f"\n\n{html.escape(note)}"
     await send_message(user.telegram_id, text)

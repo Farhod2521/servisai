@@ -26,6 +26,8 @@ export type Order = {
   product_id: string | null;
   product_name: string;
   duration_months: number;
+  quantity: number;
+  /** Jami to‘langan summa (narx × soni) */
   price: number;
   status: OrderStatus;
   comment: string | null;
@@ -80,6 +82,106 @@ export type Transaction = {
   created_at: string;
 };
 
+export type ProductCategory = "chat" | "design" | "code" | "office" | "social" | "other";
+export type ProductBadge = "popular" | "sale" | "new" | "api";
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  old_price: number | null;
+  durations: number[];
+  category: ProductCategory;
+  badge: ProductBadge | null;
+  features: string[];
+  /** null — cheklanmagan, 0 — tugagan */
+  stock: number | null;
+  /** Haqiqiy sotuvlar (bekor qilinmagan buyurtmalar) */
+  sold_count: number;
+  /** Masalan "10 daqiqa – 1 soat" */
+  delivery_time: string;
+  /** Xariddan so‘ng ma’lumot darhol beriladimi */
+  instant_delivery: boolean;
+  /** "Muhim ma’lumot": qoidalar, kafolat shartlari */
+  notes: string;
+};
+
+export type DeliveryMode = "auto" | "manual";
+
+export type AdminProduct = Product & {
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  /** auto — har xaridorga ro‘yxatdan alohida havola/kod; soni = berilmagan elementlar soni */
+  delivery_mode: DeliveryMode;
+};
+
+export type DeliveryItem = {
+  id: number;
+  content: string;
+  created_at: string;
+  delivered_at: string | null;
+  order_id: number | null;
+  order_number: string | null;
+  user_id: number | null;
+  user_name: string | null;
+};
+
+/** Yaratish/tahrirlash so‘rovi (id faqat yaratishda yuboriladi) */
+export type ProductInput = Omit<AdminProduct, "id" | "created_at" | "updated_at" | "sold_count" | "instant_delivery"> & { id?: string };
+
+export type AdminStats = {
+  users_total: number;
+  users_new_7d: number;
+  products_active: number;
+  products_total: number;
+  orders_total: number;
+  orders_active: number;
+  revenue_total: number;
+  revenue_30d: number;
+  topups_pending: number;
+};
+
+export type AdminOrder = Order & {
+  user_id: number;
+  user_name: string;
+  user_telegram_username: string | null;
+  user_phone: string | null;
+};
+
+export type AdminUser = {
+  id: number;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  telegram_id: number | null;
+  telegram_username: string | null;
+  balance: number;
+  is_admin: boolean;
+  created_at: string;
+  last_login_at: string | null;
+  orders_count: number;
+  total_spent: number;
+};
+
+export type AdminUserList = { items: AdminUser[]; total: number; total_balance: number; users_with_balance: number };
+
+export type AdminUserDetail = {
+  user: AdminUser;
+  /** Taklif qilgan do‘stlari soni va o‘zini kim taklif qilgani */
+  friends: number;
+  referred_by_name: string | null;
+  /** Tasdiqlangan to‘ldirishlar yig‘indisi */
+  topped_up: number;
+  topups: { id: number; amount: number; status: TopUpStatus; admin_note: string | null; created_at: string }[];
+  orders: Order[];
+};
+
+export type TopProduct = { product_id: string | null; product_name: string; orders: number; revenue: number };
+
 export const topUpStatusMeta: Record<TopUpStatus, { label: string; className: string }> = {
   pending: { label: "Tekshirilmoqda", className: "bg-amber-50 text-amber-700" },
   approved: { label: "Tasdiqlandi", className: "bg-emerald-50 text-emerald-700" },
@@ -126,6 +228,27 @@ export const tokenStore = {
   },
 };
 
+const REF_KEY = "servisai_ref";
+
+/** Taklif havolasidagi kod (?ref=KOD): ro‘yxatdan o‘tguncha brauzerda saqlanadi */
+export const refStore = {
+  get: () => {
+    try {
+      return localStorage.getItem(REF_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set: (code: string | null) => {
+    try {
+      if (code) localStorage.setItem(REF_KEY, code);
+      else localStorage.removeItem(REF_KEY);
+    } catch {
+      /* private rejim */
+    }
+  },
+};
+
 export async function api<T>(path: string, init: RequestInit & { json?: unknown } = {}): Promise<T> {
   const { json, headers, ...rest } = init;
   const token = tokenStore.get();
@@ -167,3 +290,53 @@ export function formatDate(iso: string, withTime = true) {
   const date = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
   return withTime ? `${date}, ${pad(d.getHours())}:${pad(d.getMinutes())}` : date;
 }
+
+/* ---------- Do‘st taklif qilish ---------- */
+
+export type MyReward = {
+  id: number;
+  title: string;
+  required_friends: number;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  achieved: boolean;
+  granted: boolean;
+  order_number: string | null;
+};
+
+export type MyReferral = {
+  code: string;
+  site_link: string;
+  bot_link: string | null;
+  friends: number;
+  friends_list: { name: string; joined_at: string }[];
+  rewards: MyReward[];
+};
+
+export type Reward = {
+  id: number;
+  title: string;
+  required_friends: number;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  is_active: boolean;
+  granted_count: number;
+  eligible_count: number;
+  created_at: string;
+};
+
+export type RewardGrant = {
+  id: number;
+  user_id: number;
+  user_name: string;
+  user_telegram_username: string | null;
+  reward_title: string;
+  order_id: number | null;
+  order_number: string | null;
+  order_status: OrderStatus | null;
+  created_at: string;
+};
+
+export type TopReferrer = { user_id: number; user_name: string; user_telegram_username: string | null; friends: number };

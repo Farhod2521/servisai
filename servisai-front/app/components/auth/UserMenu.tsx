@@ -4,10 +4,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { User } from "../../lib/api";
 import { formatPrice } from "../../mahsulotlar/catalog-data";
-import { History, LogOut, Receipt, UserIcon, Wallet } from "../icons";
+import { Gift, History, LogOut, Receipt, Shield, UserIcon, Wallet } from "../icons";
 import { useAuth } from "./AuthProvider";
 
-export function Avatar({ user, className = "size-9" }: { user: User; className?: string }) {
+export function Avatar({
+  user,
+  className = "size-9",
+}: {
+  user: Pick<User, "full_name" | "email" | "avatar_url">;
+  className?: string;
+}) {
   const initials = (user.full_name || user.email || "?")
     .split(/\s+/)
     .slice(0, 2)
@@ -26,7 +32,12 @@ export const accountLinks = [
   { href: "/profil?tab=hisob", label: "Hisobim", icon: Wallet },
   { href: "/profil?tab=buyurtmalar", label: "Mening buyurtmalarim", icon: Receipt },
   { href: "/profil?tab=tarix", label: "Buyurtmalar tarixi", icon: History },
+  { href: "/profil?tab=dostlar", label: "Do‘stlarni taklif qilish", icon: Gift },
 ];
+
+/** Adminlar uchun menyuga "Admin panel" ham qo‘shiladi */
+export const accountLinksFor = (user: User) =>
+  user.is_admin ? [...accountLinks, { href: "/admin", label: "Admin panel", icon: Shield }] : accountLinks;
 
 /** Headerdagi "Tizimga kirish" tugmasi yoki kirgan foydalanuvchi menyusi */
 export default function UserMenu() {
@@ -80,7 +91,7 @@ export default function UserMenu() {
               <span>{formatPrice(user.balance)} so‘m</span>
             </Link>
           </div>
-          {accountLinks.map(({ href, label, icon: Icon }) => (
+          {accountLinksFor(user).map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}

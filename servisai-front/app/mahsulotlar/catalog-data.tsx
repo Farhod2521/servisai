@@ -11,14 +11,15 @@ import {
   Users,
   Video,
 } from "../components/icons";
+import type { Product, ProductBadge, ProductCategory } from "../lib/api";
 
-export type CatalogCategory = "chat" | "design" | "code" | "office" | "social" | "other";
+// Mahsulotning o‘zi (nom, narx, tavsif...) backenddan keladi va admin paneldan tahrirlanadi.
+// Bu faylda faqat ko‘rinishga oid narsalar: kategoriya/belgi nomlari, logolar.
+
 export type ProductType = "premium" | "api" | "individual" | "team";
 export type Seller = "official" | "warranty" | "api" | "other";
-export type Badge = "popular" | "sale" | "new" | "api";
-export type Duration = 1 | 18;
 
-export const catalogCategories: { id: CatalogCategory | "all"; label: string; icon: ReactNode }[] = [
+export const catalogCategories: { id: ProductCategory | "all"; label: string; icon: ReactNode }[] = [
   { id: "all", label: "Barchasi", icon: <Grid className="size-4" /> },
   { id: "chat", label: "AI Chatbotlar", icon: <Bot className="size-4" /> },
   { id: "design", label: "Dizayn & Video", icon: <Video className="size-4" /> },
@@ -42,40 +43,35 @@ export const sellers: { id: Seller; label: string; short: string }[] = [
   { id: "other", label: "Boshqa", short: "Boshqa" },
 ];
 
-export const badgeStyles: Record<Badge, { label: string; className: string }> = {
+export const badgeStyles: Record<ProductBadge, { label: string; className: string }> = {
   popular: { label: "Eng ommabop", className: "bg-emerald-50 text-emerald-600" },
   sale: { label: "Chegirma", className: "bg-rose-50 text-rose-500" },
   new: { label: "Yangi", className: "bg-lime-50 text-lime-600" },
   api: { label: "API kredit", className: "bg-sky-50 text-sky-600" },
 };
 
-export type CatalogProduct = {
-  id: string;
-  name: string;
-  description: string;
-  category: CatalogCategory;
-  type: ProductType;
-  seller: Seller;
-  durations: Duration[];
-  price: number;
-  oldPrice?: number;
-  badge?: Badge;
-  rating: number;
-  reviews: number;
-  sold: number;
-  /** Ommaboplik bo‘yicha saralash uchun (kichik = yuqorida) */
-  rank: number;
-  /** Yangi qo‘shilganlar bo‘yicha saralash uchun (katta = yangi) */
-  addedAt: number;
-  /** Servis sahifasidagi "Nimalar kiradi" ro‘yxati */
-  features: string[];
+/** API mahsuloti + kartochkada ko‘rsatiladigan qo‘shimcha ma’lumotlar */
+export type CatalogProduct = Product & {
   logo: ReactNode;
+  // Faqat ma’lumoti bor servislar uchun ko‘rsatiladi
+  rating?: number;
+  reviews?: number;
+  type?: ProductType;
+  seller?: Seller;
 };
 
 /** 1234567 -> "1 234 567" (toLocaleString server/brauzerda turli bo‘shliq qaytarishi mumkin) */
 export const formatPrice = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 export const formatCount = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}K` : String(n));
-export const discountPercent = (p: CatalogProduct) => (p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0);
+/** Admin soni 0 qilib qo‘ygan mahsulot: saytda oq-qora, sotib bo‘lmaydi */
+export const isSoldOut = (p: Pick<Product, "stock">) => p.stock === 0;
+
+/** "Qoldi: 5 ta" kabi yozuv; cheklanmagan mahsulot uchun null */
+export const stockLabel = (p: Pick<Product, "stock">) =>
+  p.stock === null ? null : p.stock === 0 ? "Tugagan" : `Qoldi: ${p.stock} ta`;
+
+export const discountPercent = (p: Pick<Product, "price" | "old_price">) =>
+  p.old_price ? Math.round((1 - p.price / p.old_price) * 100) : 0;
 
 /* ---------- Logolar ---------- */
 
@@ -99,37 +95,39 @@ const logos = {
   ),
 };
 
-export const catalogProducts: CatalogProduct[] = [
-  { id: "chatgpt-plus", name: "ChatGPT Plus", description: "GPT-4, DALL-E, Advanced Data Analysis va yana ko‘p imkoniyatlar", category: "chat", type: "individual", seller: "official", durations: [1], price: 200000, badge: "popular", rating: 4.9, reviews: 1200, sold: 12500, rank: 1, addedAt: 1, logo: logos.openai,
-    features: [
-      "GPT-4o va eng yangi OpenAI modellariga kirish",
-      "DALL-E bilan rasm yaratish",
-      "Advanced Data Analysis — fayl va jadvallarni tahlil qilish",
-      "Custom GPT’lar yaratish va ishlatish",
-      "Ovozli suhbat rejimi",
-      "Bepul versiyaga nisbatan yuqori limitlar",
-    ] },
-  { id: "gemini-advanced", name: "Gemini Advanced", description: "Google’ning eng yangi AI modeli, 1.5 Pro, 2TB gacha imkoniyatlar", category: "chat", type: "individual", seller: "official", durations: [18], price: 35000, badge: "new", rating: 4.8, reviews: 760, sold: 6100, rank: 3, addedAt: 3, logo: logos.gemini,
-    features: [
-      "Gemini 1.5 Pro — Google’ning eng kuchli modeli",
-      "1 million tokengacha kontekst",
-      "2TB Google One bulutli xotirasi",
-      "Gmail, Docs va Sheets ichida Gemini",
-      "Uzun hujjat va kodlarni tahlil qilish",
-      "18 oy davomida to‘liq imkoniyatlar",
-    ] },
-  { id: "capcut-pro", name: "CapCut Pro", description: "Premium shablonlar, AI video, tafsirlar, barcha funksiyalar", category: "design", type: "individual", seller: "warranty", durations: [1], price: 40000, badge: "popular", rating: 4.7, reviews: 650, sold: 9300, rank: 2, addedAt: 2, logo: logos.capcut,
-    features: [
-      "Barcha Pro shablon va effektlar",
-      "AI video tahrirlash vositalari",
-      "Suv belgisisiz eksport",
-      "4K sifatda eksport",
-      "Avtomatik subtitrlar",
-      "Bulutli xotira",
-    ] },
+const fallbackColors = [
+  "from-[#4f7cff] to-[#1557ff]",
+  "from-[#a855f7] to-[#6d28d9]",
+  "from-[#f97316] to-[#ea580c]",
+  "from-[#10b981] to-[#047857]",
+  "from-[#ec4899] to-[#be185d]",
+  "from-[#0ea5e9] to-[#0369a1]",
 ];
 
-export const getProduct = (id: string) => catalogProducts.find((p) => p.id === id);
+/** Logosi tayyorlanmagan (admin qo‘shgan) mahsulot uchun: nomning bosh harfi, rang id’dan */
+export function FallbackLogo({ id, name }: { id: string; name: string }) {
+  const hash = [...id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 0);
+  return (
+    <div className={`${tile} bg-gradient-to-br text-white ${fallbackColors[hash % fallbackColors.length]}`}>
+      <span className="text-[2.2em] font-extrabold leading-none">{(name.trim()[0] ?? "?").toUpperCase()}</span>
+    </div>
+  );
+}
+
+type Extras = Omit<CatalogProduct, keyof Product>;
+
+const extras: Record<string, Extras> = {
+  "chatgpt-plus": { logo: logos.openai, rating: 4.9, reviews: 1200, type: "individual", seller: "official" },
+  "gemini-advanced": { logo: logos.gemini, rating: 4.8, reviews: 760, type: "individual", seller: "official" },
+  "capcut-pro": { logo: logos.capcut, rating: 4.7, reviews: 650, type: "individual", seller: "warranty" },
+};
+
+/** Build vaqtida oldindan tayyorlanadigan servis sahifalari */
+export const knownProductIds = Object.keys(extras);
+
+export function toCatalogProduct(p: Product): CatalogProduct {
+  return { ...p, ...(extras[p.id] ?? { logo: <FallbackLogo id={p.id} name={p.name} /> }) };
+}
 
 /** Banner uchun suzib turuvchi logolar */
 export const bannerLogos = [

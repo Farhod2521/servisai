@@ -223,20 +223,68 @@ export const Box = (p: IconProps) => (
   </Base>
 );
 
-/* ---------- Brand logos (soddalashtirilgan) ---------- */
+export const Plus = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Base>
+);
+export const Pencil = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z" />
+    <path d="m15 5 4 4" />
+  </Base>
+);
+export const Trash = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" />
+  </Base>
+);
+export const Eye = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+    <circle cx="12" cy="12" r="3" />
+  </Base>
+);
+export const EyeOff = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20" />
+  </Base>
+);
+export const Chart = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M3 3v18h18" />
+    <path d="M7 15v2M12 10v7M17 6v11" />
+  </Base>
+);
 
-export const Logo = (p: IconProps) => (
-  <svg viewBox="0 0 32 32" aria-hidden="true" {...p}>
-    <circle cx="16" cy="16" r="16" fill="#1557ff" />
-    <path
-      d="M20.5 10.5c-1.2-1-2.8-1.5-4.6-1.5-3 0-5 1.6-5 3.9 0 4.9 9.3 3 9.3 6.6 0 1.3-1.3 2.2-3.5 2.2-2 0-3.6-.7-4.8-1.8"
-      fill="none"
-      stroke="#fff"
-      strokeWidth={2.8}
-      strokeLinecap="round"
-    />
+export const Gift = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="3" y="8" width="18" height="4" rx="1" />
+    <path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+    <path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5" />
+  </Base>
+);
+export const CheckCircle = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" {...p}>
+    <circle cx="12" cy="12" r="10" fill="currentColor" />
+    <path d="m7.5 12.5 3 3 6-6.5" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+export const Copy = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="9" y="9" width="12" height="12" rx="2" />
+    <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+  </Base>
+);
+export const CloudUpload = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9" />
+    <path d="M12 12v9M8.5 15.5 12 12l3.5 3.5" />
+  </Base>
+);
+
+/* ---------- Brand logos (soddalashtirilgan) ---------- */
 
 export const OpenAILogo = (p: IconProps) => (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...p}>

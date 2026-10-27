@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, ApiError, tokenStore, type User } from "../../lib/api";
+import { api, ApiError, refStore, tokenStore, type User } from "../../lib/api";
 import LoginModal from "./LoginModal";
 
 type LoginOptions = {
@@ -36,6 +36,12 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [login, setLogin] = useState<LoginOptions | null>(null);
 
+  // Taklif havolasi (?ref=KOD) bilan kelganda kod ro‘yxatdan o‘tishgacha saqlanadi
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref && /^[A-Za-z0-9_]{4,20}$/.test(ref)) refStore.set(ref);
+  }, []);
+
   useEffect(() => {
     const check = tokenStore.get()
       ? api<User>("/users/me")
@@ -59,6 +65,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       /* keyingi urinishda yangilanadi */
     }
   }, []);
+
+  // Telegram botda telefon yuborilgandan so‘ng saytga qaytilganda yangi ma’lumot olinadi
+  useEffect(() => {
+    if (!user) return;
+    const onVisible = () => document.visibilityState === "visible" && refreshUser();
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [user, refreshUser]);
 
   const logout = useCallback(() => {
     tokenStore.set(null);

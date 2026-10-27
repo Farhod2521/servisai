@@ -1,26 +1,16 @@
-import uuid
-from pathlib import Path
-
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 
 from ..config import settings
 from ..deps import AdminUser, CurrentUser, SessionDep
-from ..models import TopUp, TopUpStatus, Transaction, User
-from ..notify import notify_topup_result, send_topup_to_admin
+from ..models import TopUp, Transaction, User
+from ..notify import notify_topup_result
 from ..schemas import TopUpOut, TopUpReview, TransactionOut, WalletOut
+from ..topups import MAX_RECEIPT_SIZE, TopUpError, submit_topup, topup_enabled
 from ..wallet import TopUpAlreadyReviewed, review_topup
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
 admin_router = APIRouter(prefix="/admin/topups", tags=["admin"])
-
-RECEIPT_TYPES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf"}
-MAX_RECEIPT_SIZE = 10 * 1024 * 1024
-
-
-def _topup_enabled() -> bool:
-    return bool(settings.telegram_bot_token and settings.telegram_admin_chat_id)
-
 
 @router.get("", response_model=WalletOut)
 async def wallet(user: CurrentUser):
@@ -30,7 +20,7 @@ async def wallet(user: CurrentUser):
         card_holder=settings.payment_card_holder or None,
         min_amount=settings.topup_min_amount,
         max_amount=settings.topup_max_amount,
-        topup_enabled=_topup_enabled(),
+        topup_enabled=topup_enabled(),
     )
 
 
@@ -69,45 +59,11 @@ async def create_topup(
     receipt: UploadFile = File(...),
 ):
     """Summa va chek rasmi qabul qilinadi, chek admin Telegram chatiga tasdiqlash tugmalari bilan yuboriladi."""
-    if not _topup_enabled():
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Hisobni to‘ldirish hozircha sozlanmagan")
-    if not settings.topup_min_amount <= amount <= settings.topup_max_amount:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            f"Summa {settings.topup_min_amount:,} – {settings.topup_max_amount:,} so‘m oralig‘ida bo‘lishi kerak".replace(",", " "),
-        )
-    ext = RECEIPT_TYPES.get(receipt.content_type or "")
-    if ext is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Chek JPG, PNG, WEBP rasm yoki PDF bo‘lishi kerak")
     content = await receipt.read(MAX_RECEIPT_SIZE + 1)
-    if len(content) > MAX_RECEIPT_SIZE:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Chek hajmi 10 MB dan oshmasligi kerak")
-    if not content:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Chek fayli bo‘sh")
-
-    pending = (
-        await session.scalars(select(TopUp.id).where(TopUp.user_id == user.id, TopUp.status == TopUpStatus.pending))
-    ).all()
-    if len(pending) >= 3:
-        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Avvalgi so‘rovlaringiz hali tekshirilmoqda, biroz kuting")
-
-    folder = Path(settings.media_dir) / "receipts"
-    folder.mkdir(parents=True, exist_ok=True)
-    file_name = f"{uuid.uuid4().hex}.{ext}"
-    path = folder / file_name
-    path.write_bytes(content)
-
-    topup = TopUp(user_id=user.id, amount=amount, receipt_path=str(path))
-    session.add(topup)
-    await session.flush()
-
-    if not await send_topup_to_admin(topup, user, file_name, content, receipt.content_type):
-        await session.rollback()
-        path.unlink(missing_ok=True)
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Chekni yuborib bo‘lmadi, birozdan so‘ng qayta urinib ko‘ring")
-
-    await session.commit()
-    return topup
+    try:
+        return await submit_topup(session, user, amount, content, receipt.content_type)
+    except TopUpError as e:
+        raise HTTPException(e.status, e.message)
 
 
 @admin_router.post("/{topup_id}", response_model=TopUpOut)

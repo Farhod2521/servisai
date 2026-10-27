@@ -15,8 +15,8 @@ const usefulLinks = [
 export default function Footer() {
   return (
     <footer id="aloqa" className="border-t border-slate-100 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-        <div>
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-12 sm:px-6 lg:grid-cols-4">
+        <div className="col-span-2 sm:col-span-1">
           <Brand />
           <p className="mt-4 max-w-56 text-sm text-muted">Zamonaviy AI va premium servislar endi O‘zbekistonda.</p>
           <div className="mt-5 flex gap-3">
@@ -59,7 +59,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <h4 className="font-semibold">Aloqa</h4>
           <ul className="mt-4 space-y-3 text-sm text-muted">
             <li>

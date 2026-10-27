@@ -63,7 +63,7 @@ export default function WalletTab() {
       <BalanceHero balance={wallet?.balance ?? null} />
 
       {wallet && (
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-7">
             <TopUpForm wallet={wallet} onCreated={(t) => setTopups((prev) => [t, ...(prev ?? [])])} />
           </div>
@@ -542,7 +542,7 @@ function WalletFaq({ wallet }: { wallet: Wallet }) {
   ];
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <p className="text-lg font-bold">Ko‘p so‘raladigan savollar</p>
         <Link href="/#faq" className="flex shrink-0 items-center gap-1 text-sm font-semibold text-brand hover:underline">
           Barchasini ko‘rish <ArrowRight className="size-4" />

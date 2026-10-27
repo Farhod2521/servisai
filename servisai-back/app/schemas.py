@@ -320,6 +320,16 @@ class TopUpOut(ORM):
     reviewed_at: datetime | None
 
 
+class AdminTopUpOut(TopUpOut):
+    user_id: int
+    user_name: str
+    user_telegram_username: str | None
+    user_balance: int
+    reviewed_by: str | None
+    # Chek turi (rasm yoki PDF) — admin panelda ko‘rsatish uchun
+    receipt_type: str
+
+
 class TransactionOut(ORM):
     id: int
     type: TransactionType

@@ -64,7 +64,7 @@ export default function Profile() {
   const select = (id: Tab) => router.replace(id === "profil" ? pathname : `${pathname}?tab=${id}`, { scroll: false });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
       <aside className="h-fit rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:sticky lg:top-24">
         <div className="flex items-center gap-3">
           <Avatar user={user} className="size-14" />

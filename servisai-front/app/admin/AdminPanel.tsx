@@ -58,7 +58,7 @@ export default function AdminPanel() {
     router.replace(id === "dashboard" ? pathname : `${pathname}?tab=${id}${extra}`, { scroll: false });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
       <aside className="h-fit rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 lg:sticky lg:top-24">
         <p className="px-3 pb-3 pt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Admin panel</p>
         <nav className="flex gap-1 overflow-x-auto lg:flex-col">

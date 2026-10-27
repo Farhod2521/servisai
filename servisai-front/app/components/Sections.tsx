@@ -80,12 +80,12 @@ export function Features() {
   return (
     <section id="afzalliklar" className="mx-auto max-w-7xl scroll-mt-20 px-4 pb-20 sm:px-6">
       <SectionHeading badge="Nega bizni tanlashadi?" title="Bizning afzalliklarimiz" />
-      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {features.map((f) => (
-          <div key={f.title} className="flex flex-col items-center rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-slate-100">
-            <div className={`grid size-14 place-items-center rounded-full ${f.bg}`}>{f.icon}</div>
-            <h3 className="mt-4 font-semibold">{f.title}</h3>
-            <p className="mt-1 text-sm text-muted">{f.text}</p>
+          <div key={f.title} className="flex flex-col items-center rounded-3xl bg-white p-4 text-center shadow-sm ring-1 ring-slate-100 sm:p-7">
+            <div className={`grid size-12 place-items-center rounded-full sm:size-14 ${f.bg}`}>{f.icon}</div>
+            <h3 className="mt-3 text-sm font-semibold sm:mt-4 sm:text-base">{f.title}</h3>
+            <p className="mt-1 text-xs text-muted sm:text-sm">{f.text}</p>
           </div>
         ))}
       </div>

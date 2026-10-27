@@ -120,7 +120,7 @@ function ProductCard({ product: p }: { product: CatalogProduct }) {
 
   return (
     <article
-      className={`group relative flex flex-col overflow-hidden rounded-[2rem] p-7 ring-1 transition ${
+      className={`group relative flex flex-col overflow-hidden rounded-[2rem] p-5 ring-1 transition sm:p-7 ${
         soldOut
           ? "bg-slate-50 ring-slate-200 grayscale"
           : "bg-white shadow-[0_10px_40px_-12px_rgb(15_40_120/0.12)] ring-slate-100 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgb(15_40_120/0.2)]"
@@ -130,7 +130,7 @@ function ProductCard({ product: p }: { product: CatalogProduct }) {
       <div aria-hidden className={`pointer-events-none absolute -right-16 -top-20 h-56 w-80 rotate-[-12deg] rounded-full blur-3xl ${accent.glow}`} />
 
       <div className="relative flex items-start justify-between gap-3">
-        <div className="size-24 shrink-0 text-xl shadow-xl shadow-slate-900/10 [&>*]:rounded-3xl rounded-3xl">{p.logo}</div>
+        <div className="size-20 shrink-0 rounded-3xl text-lg shadow-xl shadow-slate-900/10 sm:size-24 sm:text-xl [&>*]:rounded-3xl">{p.logo}</div>
         {soldOut ? (
           <span className="rounded-xl bg-slate-900 px-3 py-1.5 text-sm font-extrabold uppercase tracking-wide text-white">Tugagan</span>
         ) : (
@@ -157,13 +157,13 @@ function ProductCard({ product: p }: { product: CatalogProduct }) {
         )}
       </div>
 
-      <div className="relative mt-6 flex items-end justify-between gap-3">
+      <div className="relative mt-6 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           {/* Chegirmasiz kartochkalar ham bir xil balandlikda turishi uchun joy saqlanadi */}
           <p className="h-6 text-base text-slate-400">
             {p.old_price && <span className="line-through decoration-rose-500 decoration-2">{formatPrice(p.old_price)} so‘m</span>}
           </p>
-          <p className="whitespace-nowrap text-[2rem] font-extrabold leading-tight tracking-tight">
+          <p className="whitespace-nowrap text-[1.75rem] font-extrabold leading-tight tracking-tight sm:text-[2rem]">
             {formatPrice(p.price)} <span className="text-lg font-bold">so‘m</span>
           </p>
           <p className="text-slate-500">/ {durationText(p.durations[0], p.duration_unit)}</p>

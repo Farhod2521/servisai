@@ -112,9 +112,9 @@ export default function SuggestionWidget() {
       <button
         onClick={expand}
         aria-label="Taklif qoldirish"
-        className="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-violet-600 py-3 pl-4 pr-5 text-sm font-semibold text-white shadow-xl shadow-blue-600/30 transition hover:scale-105"
+        className="fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-violet-600 p-3.5 text-sm font-semibold text-white shadow-xl shadow-blue-600/30 transition hover:scale-105 sm:bottom-5 sm:right-5 sm:py-3 sm:pl-4 sm:pr-5"
       >
-        <Lightbulb className="size-5" /> Taklif
+        <Lightbulb className="size-5" /> <span className="hidden sm:inline">Taklif</span>
         {unseen > 0 && (
           <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-rose-500 text-[11px] font-bold ring-2 ring-white">
             {unseen}

@@ -64,8 +64,10 @@ export default function ProductDetail({ id, children }: { id: string; children: 
 
         <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-8">
           {/* ---------- Chap: servis haqida ---------- */}
-          <div className="min-w-0 space-y-6">
-            <section className="relative overflow-hidden rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
+          {/* Telefonda (contents) bloklar to‘g‘ridan-to‘g‘ri setkaga tushadi va order bilan tartiblanadi:
+              servis → sotib olish → imkoniyatlar; kompyuterda chap ustun bo‘lib qoladi */}
+          <div className="contents lg:block lg:min-w-0 lg:space-y-6">
+            <section className="relative order-1 overflow-hidden rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
               <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-violet-200/40 blur-3xl" />
               <div aria-hidden className="pointer-events-none absolute -left-16 bottom-0 size-56 rounded-full bg-sky-200/30 blur-3xl" />
 
@@ -111,7 +113,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
             </section>
 
             {p.features.length > 0 && (
-              <section className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
+              <section className="order-3 rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <h2 className="text-2xl font-bold">Nimalar kiradi?</h2>
@@ -133,7 +135,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
             )}
 
             {p.notes.trim() && (
-              <section className="rounded-[2rem] bg-amber-50/70 p-6 ring-1 ring-amber-100 sm:p-8">
+              <section className="order-3 rounded-[2rem] bg-amber-50/70 p-6 ring-1 ring-amber-100 sm:p-8">
                 <h2 className="flex items-center gap-2 text-xl font-bold text-amber-950">
                   <span className="grid size-9 place-items-center rounded-xl bg-amber-100 text-lg">⚠️</span> Muhim ma’lumot
                 </h2>
@@ -152,7 +154,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
               </section>
             )}
 
-            <ul className="grid gap-3 sm:grid-cols-3">
+            <ul className="order-3 grid gap-3 sm:grid-cols-3">
               {[
                 { icon: Bolt, tone: "bg-violet-50 text-violet-500", title: "Tez faollashtirish", text: "To‘lovdan so‘ng operator tezda faollashtiradi" },
                 { icon: Shield, tone: "bg-emerald-50 text-emerald-500", title: "100% ishonchli", text: "Muammo bo‘lsa pul hisobingizga qaytadi" },
@@ -172,7 +174,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
           </div>
 
           {/* ---------- O‘ng: sotib olish ---------- */}
-          <aside className="lg:sticky lg:top-24">
+          <aside className="order-2 lg:sticky lg:top-24 lg:order-none">
             <div
               className={`rounded-[2rem] p-6 ring-1 ${
                 soldOut ? "bg-slate-50 ring-slate-200 grayscale" : "bg-white shadow-[0_12px_40px_-12px_rgb(15_40_120/0.18)] ring-slate-100"

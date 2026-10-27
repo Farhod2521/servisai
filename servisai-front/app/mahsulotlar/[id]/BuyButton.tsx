@@ -142,7 +142,7 @@ export default function BuyButton({
   return (
     <>
       {/* Soni va jami summa */}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-5 flex items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold">Soni</p>
           <div className={`mt-1.5 flex w-fit items-center overflow-hidden rounded-xl ring-1 ${qtyProblem && qty > 0 ? "ring-rose-300" : "ring-slate-200"}`}>
@@ -167,7 +167,7 @@ export default function BuyButton({
         </div>
         <div className="text-right">
           <p className="text-sm text-slate-500">{qty > 1 ? `${qty} × ${formatPrice(price)} so‘m` : "Jami"}</p>
-          <p className="text-2xl font-extrabold">{formatPrice(total)} so‘m</p>
+          <p className="whitespace-nowrap text-xl font-extrabold sm:text-2xl">{formatPrice(total)} so‘m</p>
         </div>
       </div>
       {qtyProblem && qty > 0 && (

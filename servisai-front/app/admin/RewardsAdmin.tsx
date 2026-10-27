@@ -142,7 +142,7 @@ export default function RewardsAdmin() {
         </ul>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-6">
           <h2 className="text-lg font-bold">Berilgan sovg‘alar</h2>
           {!grants ? (

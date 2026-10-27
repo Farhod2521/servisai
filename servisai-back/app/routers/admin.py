@@ -275,7 +275,7 @@ async def update_product(product_id: str, data: ProductUpdate, _: AdminUser, ses
     # badge va old_price ni null qilib olib tashlash mumkin, qolganlari majburiy
     for field in (
         "name", "price", "durations", "category", "features", "sort_order", "is_active", "description",
-        "delivery_mode", "delivery_time", "notes",
+        "delivery_mode", "delivery_time", "notes", "sold_base", "duration_unit",
     ):
         if field in changes and changes[field] is None:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"“{field}” bo‘sh bo‘lishi mumkin emas")

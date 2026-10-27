@@ -20,6 +20,11 @@ STATUS_LABELS = {
 }
 
 
+def duration_label(n: int, unit: str) -> str:
+    """3, "day" -> "3 kun"; 1, "month" -> "1 oy" """
+    return f"{n} kun" if unit == "day" else f"{n} oy"
+
+
 def format_price(n: int) -> str:
     return f"{n:,}".replace(",", " ")
 
@@ -94,7 +99,7 @@ def _delivery_block(order: Order) -> str:
 
 async def notify_order_created(order: Order, user: User, delivery_time: str, *, notify_user: bool = True) -> None:
     summary = (
-        f"<b>{order.number}</b> — {html.escape(order.product_name)} ({order.duration_months} oy)"
+        f"<b>{order.number}</b> — {html.escape(order.product_name)} ({duration_label(order.duration_months, order.duration_unit)})"
         + (f" × {order.quantity} ta" if order.quantity > 1 else "")
         + "\n"
         f"Narxi: {format_price(order.price)} so‘m"

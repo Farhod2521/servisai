@@ -52,7 +52,15 @@ curl -s http://127.0.0.1:8101/api/health  # {"status":"ok"}
 curl -sI http://127.0.0.1:3101 | head -1  # HTTP/1.1 200 OK
 ```
 
-Backend birinchi ishga tushganda bazani o‘zi yaratadi (migratsiyalar) va 3 ta boshlang‘ich mahsulotni qo‘shadi.
+Backend birinchi ishga tushganda bazani o‘zi yaratadi (migratsiyalar) va katalogni yozadi:
+`servisai-back/app/seed_catalog.json` dagi barcha mahsulotlar (tavsif, narx, soni, boshlang‘ich sotuvlar) va sovg‘a qoidalari.
+Keyingi ishga tushishlarda mavjud mahsulotlarga tegilmaydi — ular admin paneldan tahrirlanadi.
+
+> Avtomatik mahsulotlarning havolalari (masalan, Gemini) maxfiy bo‘lgani uchun faylga kirmaydi — serverda
+> Admin → Mahsulotlar → «🔗 Havolalar» orqali qayta qo‘shing. Foydalanuvchilar va buyurtmalar ham ko‘chmaydi
+> (ularni ko‘chirish kerak bo‘lsa — pastdagi «Kompyuterdagi ma’lumotlarni serverga ko‘chirish» bo‘limi).
+
+Katalogni lokal bazadan yangilash (keyinroq yangi mahsulotlar qo‘shilsa) — `seed_catalog.json` ni qayta eksport qilib commit qiling.
 
 > **Telegram bot faqat bitta joyda ishlay oladi.** Serverda ishga tushgach, kompyuteringizdagi botni to‘xtating:
 > `docker compose stop bot` — aks holda ikkalasi «Conflict: terminated by other getUpdates» xatosi bilan bir-biriga xalaqit beradi.

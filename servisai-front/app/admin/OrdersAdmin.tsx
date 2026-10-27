@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Close, Send } from "../components/icons";
 import Linkify from "../components/Linkify";
 import { api, formatDate, statusMeta, type AdminOrder, type OrderStatus } from "../lib/api";
-import { formatPrice } from "../mahsulotlar/catalog-data";
+import { durationText, formatPrice } from "../mahsulotlar/catalog-data";
 import { ErrorText } from "../profil/ui";
 
 const PAGE = 50;
@@ -90,7 +90,7 @@ export default function OrdersAdmin() {
                 <p className="mt-1.5 font-semibold">
                   {o.product_name}
                   {o.quantity > 1 && <span className="text-brand"> × {o.quantity}</span>}
-                  <span className="font-normal text-slate-400"> · {o.duration_months} oy · </span>
+                  <span className="font-normal text-slate-400"> · {durationText(o.duration_months, o.duration_unit)} · </span>
                   {formatPrice(o.price)} so‘m
                 </p>
                 <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
@@ -208,7 +208,7 @@ function DeliverDialog({ order, onClose, onSaved }: { order: AdminOrder; onClose
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-2xl bg-slate-50 p-4 text-sm">
             <dt className="text-slate-500">Mahsulot</dt>
             <dd className="font-semibold">
-              {order.product_name} {order.quantity > 1 && `× ${order.quantity}`} · {order.duration_months} oy
+              {order.product_name} {order.quantity > 1 && `× ${order.quantity}`} · {durationText(order.duration_months, order.duration_unit)}
             </dd>
             <dt className="text-slate-500">Summa</dt>
             <dd className="font-semibold">{formatPrice(order.price)} so‘m</dd>

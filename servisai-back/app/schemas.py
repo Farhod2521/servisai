@@ -77,6 +77,7 @@ class ProductOut(ORM):
     price: int
     old_price: int | None
     durations: list[int]
+    duration_unit: str
     category: str
     badge: str | None
     features: list[str]
@@ -92,6 +93,8 @@ class ProductOut(ORM):
 
 class AdminProductOut(ProductOut):
     delivery_mode: str
+    # Boshlang‘ich son (sold_count = sold_base + haqiqiy xaridlar)
+    sold_base: int
     is_active: bool
     sort_order: int
     created_at: datetime
@@ -109,13 +112,15 @@ class ProductFields(BaseModel):
     description: str | None = Field(default=None, max_length=2000)
     price: Price | None = None
     old_price: Price | None = None
-    durations: list[Annotated[int, Field(ge=1, le=120)]] | None = Field(default=None, min_length=1, max_length=12)
+    durations: list[Annotated[int, Field(ge=1, le=366)]] | None = Field(default=None, min_length=1, max_length=12)
+    duration_unit: Literal["day", "month"] | None = None
     category: ProductCategory | None = None
     badge: ProductBadge | None = None
     features: list[Feature] | None = Field(default=None, max_length=20)
     sort_order: int | None = Field(default=None, ge=0, le=10_000)
     # null — cheklanmagan
     stock: int | None = Field(default=None, ge=0, le=1_000_000)
+    sold_base: int | None = Field(default=None, ge=0, le=10_000_000)
     delivery_mode: Literal["auto", "manual"] | None = None
     delivery_time: str | None = Field(default=None, min_length=1, max_length=64)
     notes: str | None = Field(default=None, max_length=3000)
@@ -137,7 +142,7 @@ class ProductCreate(ProductFields):
     id: str = Field(min_length=2, max_length=64, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     name: str = Field(min_length=1, max_length=255)
     price: Price
-    durations: list[Annotated[int, Field(ge=1, le=120)]] = Field(min_length=1, max_length=12)
+    durations: list[Annotated[int, Field(ge=1, le=366)]] = Field(min_length=1, max_length=12)
 
     @model_validator(mode="after")
     def _old_price_higher(self):
@@ -250,6 +255,7 @@ class OrderOut(ORM):
     product_id: str | None
     product_name: str
     duration_months: int
+    duration_unit: str
     quantity: int
     # Jami summa (narx × soni)
     price: int

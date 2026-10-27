@@ -6,20 +6,7 @@ import Header from "../components/Header";
 import { Cart, ChevronDown, ChevronRight, Grid, Heart, ListIcon, Star } from "../components/icons";
 import type { ProductCategory } from "../lib/api";
 import { useProducts } from "../lib/products";
-import {
-  badgeStyles,
-  bannerLogos,
-  catalogCategories,
-  discountPercent,
-  formatCount,
-  formatPrice,
-  isSoldOut,
-  productTypes,
-  sellers,
-  stockLabel,
-  toCatalogProduct,
-  type CatalogProduct,
-} from "./catalog-data";
+import { badgeStyles, bannerLogos, catalogCategories, type CatalogProduct, discountPercent, durationText, formatCount, formatPrice, isSoldOut, productTypes, sellers, stockLabel, toCatalogProduct } from "./catalog-data";
 
 const sortOptions = [
   { id: "popular", label: "Ommabop" },
@@ -58,7 +45,9 @@ export default function Catalog() {
       expensive: (a, b) => b.price - a.price,
     };
     const sorter = sorters[sort];
-    return sorter ? list.sort(sorter) : list;
+    const sorted = sorter ? list.sort(sorter) : list;
+    // Tugaganlar har doim oxirida (qolganlarning tartibi saqlanadi)
+    return [...sorted.filter((p) => !isSoldOut(p)), ...sorted.filter(isSoldOut)];
   }, [products, query, category, sort]);
 
   const resetFilters = () => {
@@ -214,7 +203,7 @@ function ProductCard({
 }) {
   const discount = discountPercent(p);
   const badge = p.badge && badgeStyles[p.badge];
-  const durationLabel = `${p.durations.join("/")} oy`;
+  const durationLabel = `${p.durations.join("/")} ${p.duration_unit === "day" ? "kun" : "oy"}`;
   const sellerLabel = sellers.find((s) => s.id === p.seller)?.short;
   const typeLabel = productTypes.find((t) => t.id === p.type)?.short;
   const soldOut = isSoldOut(p);
@@ -244,7 +233,7 @@ function ProductCard({
 
   const chips = (
     <div className="flex flex-wrap gap-1.5">
-      {[sellerLabel, typeLabel, durationLabel].filter(Boolean).map((c) => (
+      {[...new Set([sellerLabel, typeLabel, durationLabel].filter(Boolean))].map((c) => (
         <span key={c} className="rounded-md bg-slate-50 px-2 py-1 text-[11px] text-slate-500 ring-1 ring-slate-100">{c}</span>
       ))}
     </div>
@@ -256,7 +245,7 @@ function ProductCard({
         <span className="text-xl font-bold">{formatPrice(p.price)} so‘m</span>
         {p.old_price && <span className="text-xs text-slate-400 line-through">{formatPrice(p.old_price)} so‘m</span>}
       </p>
-      <p className="text-xs text-slate-400">/ {p.durations[0]} oy</p>
+      <p className="text-xs text-slate-400">/ {durationText(p.durations[0], p.duration_unit)}</p>
       {stock && (
         <p
           className={`mt-1 text-xs font-semibold ${
@@ -269,17 +258,16 @@ function ProductCard({
     </div>
   );
 
-  // Reyting faqat ma’lumoti bor servislarda, sotuvlar soni hammasida (bo‘lsa) ko‘rsatiladi
+  // "⭐ 4.9 (23)": qavs ichida sotib olganlar soni; reytingi yo‘q servisda faqat sotuvlar
   const stats = (p.rating !== undefined || p.sold_count > 0) && (
-    <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
+    <div className="flex items-center gap-1 text-xs text-slate-500" title={`${p.sold_count} ta sotib olingan`}>
       {p.rating !== undefined ? (
-        <span className="flex items-center gap-1">
-          <Star className="size-4 text-amber-400" /> {p.rating.toFixed(1)} ({formatCount(p.reviews ?? 0)})
-        </span>
+        <>
+          <Star className="size-4 text-amber-400" /> {p.rating.toFixed(1)} ({formatCount(p.sold_count)})
+        </>
       ) : (
-        <span />
+        <span>{formatCount(p.sold_count)} ta sotib olingan</span>
       )}
-      {p.sold_count > 0 && <span>{formatCount(p.sold_count)} ta sotilgan</span>}
     </div>
   );
 

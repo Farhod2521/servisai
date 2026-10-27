@@ -1,0 +1,259 @@
+{
+  "products": [
+    {
+      "id": "chatgpt-plus",
+      "name": "ChatGPT Plus",
+      "description": "GPT-4, DALL-E, Advanced Data Analysis va yana ko‘p imkoniyatlar",
+      "price": 200000,
+      "old_price": 252000,
+      "durations": [
+        1
+      ],
+      "duration_unit": "month",
+      "category": "chat",
+      "badge": "popular",
+      "features": [
+        "GPT-4o va eng yangi OpenAI modellariga kirish",
+        "DALL-E bilan rasm yaratish",
+        "Advanced Data Analysis — fayl va jadvallarni tahlil qilish",
+        "Custom GPT’lar yaratish va ishlatish",
+        "Ovozli suhbat rejimi",
+        "Bepul versiyaga nisbatan yuqori limitlar"
+      ],
+      "notes": "",
+      "sort_order": 1,
+      "stock": 5,
+      "sold_base": 23,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "capcut-pro",
+      "name": "CapCut Pro",
+      "description": "CapCut Pro — 1 oylik (30 kun) tayyor akkaunt. Barcha Pro shablonlar, effektlar va AI vositalari ochiq. Akkaunt «Email | Parol» ko‘rinishida beriladi.",
+      "price": 35000,
+      "old_price": 55000,
+      "durations": [
+        1
+      ],
+      "duration_unit": "month",
+      "category": "design",
+      "badge": "popular",
+      "features": [
+        "Tayyor CapCut Pro akkaunt (Email | Parol)",
+        "Muddati: 1 oy (30 kun)",
+        "Barcha Pro shablon, effekt va AI vositalari",
+        "Akkauntga o‘z emailingizni qo‘shishingiz mumkin",
+        "1–2 ta qurilmada foydalanish",
+        "30 kunlik to‘liq kafolat (qoidalarga amal qilinsa)"
+      ],
+      "notes": "📱 Akkauntga faqat 1–2 ta qurilmadan kiring. Ko‘p qurilmadan kirilsa, CapCut akkauntni bloklab qo‘yishi mumkin.\n🔁 Akkauntdan tez-tez chiqib-kirmang. Shu sabab akkaunt ishlamay qolsa yoki Pro o‘chib qolsa, kafolat berilmaydi.\n🛡️ Qoidalarga to‘g‘ri amal qilsangiz (bitta qurilma, tez-tez chiqib-kirmaslik) va Pro baribir o‘chib qolsa — 30 kun davomida to‘liq yordam va kafolat beramiz.",
+      "sort_order": 2,
+      "stock": 0,
+      "sold_base": 45,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "gemini-advanced",
+      "name": "Gemini Pro 18 Oylik",
+      "description": "Google’ning eng yangi AI modeli, 1.5 Pro, 2TB gacha imkoniyatlar",
+      "price": 30000,
+      "old_price": 45000,
+      "durations": [
+        18
+      ],
+      "duration_unit": "month",
+      "category": "chat",
+      "badge": "new",
+      "features": [
+        "Gemini 1.5 Pro — Google’ning eng kuchli modeli",
+        "1 million tokengacha kontekst",
+        "2TB Google One bulutli xotirasi",
+        "Gmail, Docs va Sheets ichida Gemini",
+        "Uzun hujjat va kodlarni tahlil qilish",
+        "18 oy davomida to‘liq imkoniyatlar"
+      ],
+      "notes": "",
+      "sort_order": 3,
+      "stock": 2,
+      "sold_base": 84,
+      "delivery_mode": "auto",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "claude-api-10m",
+      "name": "Claude API — 10M token (1 kun)",
+      "description": "Claude API kaliti: 10M tokengacha, 24 soat amal qiladi. Eng kuchli Claude modellari — Opus, Sonnet va Haiku.",
+      "price": 13000,
+      "old_price": null,
+      "durations": [
+        1
+      ],
+      "duration_unit": "day",
+      "category": "code",
+      "badge": "api",
+      "features": [
+        "10 million token hajm",
+        "Muddati: 1 kun (24 soat)",
+        "Claude Opus, Sonnet va Haiku modellari",
+        "Kalit holati va token qoldig‘ini tekshirish sahifasi",
+        "1 kun ichida texnik nosozliklarga kafolat"
+      ],
+      "notes": "📖 Yo‘riqnoma va modellar ro‘yxati: https://api.nghimmo.com/huongdan\n🔍 Kalit holati va token qoldig‘ini tekshirish: https://api.nghimmo.com/check\n📢 Yangiliklar kanali: https://t.me/api_thongbao\n🛡️ Kafolat: kalit texnik sabab bilan ishlamay qolsa yordam beramiz. Murojaat buyurtma muddati (1 kun) ichida bo‘lishi kerak.\n💰 Kalitni tuzatib bo‘lmasa, ishlatilmagan tokenlar ulushiga qarab pul qaytariladi.",
+      "sort_order": 10,
+      "stock": 33,
+      "sold_base": 0,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "claude-api-50m",
+      "name": "Claude API — 50M token (1 kun)",
+      "description": "Claude API kaliti: 50M tokengacha, 24 soat amal qiladi. Eng kuchli Claude modellari — Opus, Sonnet va Haiku.",
+      "price": 32000,
+      "old_price": null,
+      "durations": [
+        1
+      ],
+      "duration_unit": "day",
+      "category": "code",
+      "badge": "api",
+      "features": [
+        "50 million token hajm",
+        "Muddati: 1 kun (24 soat)",
+        "Claude Opus, Sonnet va Haiku modellari",
+        "Kalit holati va token qoldig‘ini tekshirish sahifasi",
+        "1 kun ichida texnik nosozliklarga kafolat"
+      ],
+      "notes": "📖 Yo‘riqnoma va modellar ro‘yxati: https://api.nghimmo.com/huongdan\n🔍 Kalit holati va token qoldig‘ini tekshirish: https://api.nghimmo.com/check\n📢 Yangiliklar kanali: https://t.me/api_thongbao\n🛡️ Kafolat: kalit texnik sabab bilan ishlamay qolsa yordam beramiz. Murojaat buyurtma muddati (1 kun) ichida bo‘lishi kerak.\n💰 Kalitni tuzatib bo‘lmasa, ishlatilmagan tokenlar ulushiga qarab pul qaytariladi.",
+      "sort_order": 11,
+      "stock": 12,
+      "sold_base": 0,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "claude-api-100m",
+      "name": "Claude API — 100M token (1 kun)",
+      "description": "Claude API kaliti: 100M tokengacha, 24 soat amal qiladi. Eng kuchli Claude modellari — Opus, Sonnet va Haiku.",
+      "price": 45000,
+      "old_price": null,
+      "durations": [
+        1
+      ],
+      "duration_unit": "day",
+      "category": "code",
+      "badge": "api",
+      "features": [
+        "100 million token hajm",
+        "Muddati: 1 kun (24 soat)",
+        "Claude Opus, Sonnet va Haiku modellari",
+        "Kalit holati va token qoldig‘ini tekshirish sahifasi",
+        "1 kun ichida texnik nosozliklarga kafolat"
+      ],
+      "notes": "📖 Yo‘riqnoma va modellar ro‘yxati: https://api.nghimmo.com/huongdan\n🔍 Kalit holati va token qoldig‘ini tekshirish: https://api.nghimmo.com/check\n📢 Yangiliklar kanali: https://t.me/api_thongbao\n🛡️ Kafolat: kalit texnik sabab bilan ishlamay qolsa yordam beramiz. Murojaat buyurtma muddati (1 kun) ichida bo‘lishi kerak.\n💰 Kalitni tuzatib bo‘lmasa, ishlatilmagan tokenlar ulushiga qarab pul qaytariladi.",
+      "sort_order": 12,
+      "stock": 8,
+      "sold_base": 0,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "codex-api-10m",
+      "name": "Codex API — 10M kredit (1 kun)",
+      "description": "Codex API kredit paketi: 10 million kredit, 24 soat amal qiladi. Model: gpt-5.6-sol. Base URL va kalit orqali ulanadi.",
+      "price": 11000,
+      "old_price": null,
+      "durations": [
+        1
+      ],
+      "duration_unit": "day",
+      "category": "code",
+      "badge": "api",
+      "features": [
+        "10 million kredit",
+        "Muddati: 1 kun (24 soat)",
+        "Model: gpt-5.6-sol",
+        "To‘liq paket kafolati (BHF)",
+        "CDK kodni kalitga aylantirish va holatini tekshirish"
+      ],
+      "notes": "⚙️ Base URL: https://gpt.teamsoclo.site/v1 · Model: gpt-5.6-sol\n🔄 CDK kodni kalitga aylantirish: https://redeem.teamsoclo.site/\n🔍 Kalit holatini tekshirish: https://gpt.teamsoclo.site/check\n📖 Qo‘llanma: https://docs.teamsoclo.site/\n📢 Yangiliklar kanali: https://t.me/teamsoclo\n🛡️ Kafolat: kalit ishlamay qolsa yordam beramiz — kalit hali amal qilayotgan bo‘lishi kerak (24 soat ichida).\n💰 Ishlatilmagan token/kreditlar ulushiga qarab pul qaytariladi.",
+      "sort_order": 13,
+      "stock": 45,
+      "sold_base": 0,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "codex-api-20m",
+      "name": "Codex API — 20M kredit (1 kun)",
+      "description": "Codex API kredit paketi: 20 million kredit, 24 soat amal qiladi. Model: gpt-5.6-sol. Base URL va kalit orqali ulanadi.",
+      "price": 13000,
+      "old_price": null,
+      "durations": [
+        1
+      ],
+      "duration_unit": "day",
+      "category": "code",
+      "badge": "api",
+      "features": [
+        "20 million kredit",
+        "Muddati: 1 kun (24 soat)",
+        "Model: gpt-5.6-sol",
+        "To‘liq paket kafolati (BHF)",
+        "CDK kodni kalitga aylantirish va holatini tekshirish"
+      ],
+      "notes": "⚙️ Base URL: https://gpt.teamsoclo.site/v1 · Model: gpt-5.6-sol\n🔄 CDK kodni kalitga aylantirish: https://redeem.teamsoclo.site/\n🔍 Kalit holatini tekshirish: https://gpt.teamsoclo.site/check\n📖 Qo‘llanma: https://docs.teamsoclo.site/\n📢 Yangiliklar kanali: https://t.me/teamsoclo\n🛡️ Kafolat: kalit ishlamay qolsa yordam beramiz — kalit hali amal qilayotgan bo‘lishi kerak (24 soat ichida).\n💰 Ishlatilmagan token/kreditlar ulushiga qarab pul qaytariladi.",
+      "sort_order": 14,
+      "stock": 35,
+      "sold_base": 0,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    },
+    {
+      "id": "codex-api-50m",
+      "name": "Codex API — 50M kredit (1 kun)",
+      "description": "Codex API kredit paketi: 50 million kredit, 24 soat amal qiladi. Model: gpt-5.6-sol. Base URL va kalit orqali ulanadi.",
+      "price": 23000,
+      "old_price": null,
+      "durations": [
+        1
+      ],
+      "duration_unit": "day",
+      "category": "code",
+      "badge": "api",
+      "features": [
+        "50 million kredit",
+        "Muddati: 1 kun (24 soat)",
+        "Model: gpt-5.6-sol",
+        "To‘liq paket kafolati (BHF)",
+        "CDK kodni kalitga aylantirish va holatini tekshirish"
+      ],
+      "notes": "⚙️ Base URL: https://gpt.teamsoclo.site/v1 · Model: gpt-5.6-sol\n🔄 CDK kodni kalitga aylantirish: https://redeem.teamsoclo.site/\n🔍 Kalit holatini tekshirish: https://gpt.teamsoclo.site/check\n📖 Qo‘llanma: https://docs.teamsoclo.site/\n📢 Yangiliklar kanali: https://t.me/teamsoclo\n🛡️ Kafolat: kalit ishlamay qolsa yordam beramiz — kalit hali amal qilayotgan bo‘lishi kerak (24 soat ichida).\n💰 Ishlatilmagan token/kreditlar ulushiga qarab pul qaytariladi.",
+      "sort_order": 15,
+      "stock": 19,
+      "sold_base": 0,
+      "delivery_mode": "manual",
+      "delivery_time": "10 daqiqa – 1 soat",
+      "is_active": true
+    }
+  ],
+  "rewards": [
+    {
+      "title": "Gemini Pro 18 oylik",
+      "required_friends": 10,
+      "product_id": "gemini-advanced",
+      "quantity": 1,
+      "is_active": true
+    }
+  ]
+}

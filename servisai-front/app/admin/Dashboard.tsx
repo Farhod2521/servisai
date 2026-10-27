@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Box, Plus, Receipt, Users, Wallet } from "../components/icons";
 import { api, formatDate, statusMeta, type AdminOrder, type AdminStats, type TopProduct } from "../lib/api";
-import { formatPrice } from "../mahsulotlar/catalog-data";
+import { durationText, formatPrice } from "../mahsulotlar/catalog-data";
 import { Card, ErrorText } from "../profil/ui";
 
 type Data = { stats: AdminStats; orders: AdminOrder[]; top: TopProduct[] };
@@ -131,7 +131,7 @@ export default function Dashboard({ onAddProduct, onOpenOrders }: { onAddProduct
                       <td className="px-3 py-3">
                         {o.product_name}
                         {o.quantity > 1 && <span className="font-semibold"> × {o.quantity}</span>}{" "}
-                        <span className="text-slate-400">· {o.duration_months} oy</span>
+                        <span className="text-slate-400">· {durationText(o.duration_months, o.duration_unit)}</span>
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 text-right font-semibold">{formatPrice(o.price)} so‘m</td>
                       <td className="px-3 py-3">

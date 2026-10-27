@@ -20,3 +20,7 @@ media/
 node_modules/
 .next/
 !.env.example
+
+# Baza nusxalari (shaxsiy ma’lumotlar — GitHub’ga yuklanmaydi)
+backups/
+*.dump

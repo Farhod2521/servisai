@@ -82,6 +82,7 @@ async def place_order(
         product_id=product.id,
         product_name=product.name,
         duration_months=duration,
+        duration_unit=product.duration_unit,
         quantity=quantity,
         price=total,
         comment=comment or gift_note,

@@ -71,6 +71,8 @@ class Product(TimestampMixin, Base):
     price: Mapped[int] = mapped_column(Integer)
     old_price: Mapped[int | None] = mapped_column(Integer)
     durations: Mapped[list[int]] = mapped_column(ARRAY(Integer), default=list)
+    # durations qaysi birlikda: month — oy, day — kun
+    duration_unit: Mapped[str] = mapped_column(String(8), default="month", server_default="month")
     # Katalog filtri: chat | design | code | office | social | other
     category: Mapped[str] = mapped_column(String(32), default="other", server_default="other")
     # Kartochkadagi belgi: popular | sale | new | api
@@ -79,6 +81,8 @@ class Product(TimestampMixin, Base):
     features: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list, server_default="{}")
     # Katalogdagi tartib (kichik = yuqorida)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Saytdagi boshlang‘ich "sotib olganlar" soni; haqiqiy xaridlar shu songa qo‘shiladi
+    sold_base: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # Sotuvdagi soni: NULL — cheklanmagan, 0 — tugagan (saytda oq-qora, sotib bo‘lmaydi)
     stock: Mapped[int | None] = mapped_column(Integer, CheckConstraint("stock >= 0", name="ck_products_stock_non_negative"))
     # manual — admin qo‘lda yetkazadi; auto — har xaridorga delivery_items dan alohida element darhol beriladi
@@ -115,7 +119,9 @@ class Order(TimestampMixin, Base):
     product_id: Mapped[str | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
     # Mahsulot keyinchalik o‘zgarsa ham buyurtma tarixi saqlanib qolishi uchun nusxa
     product_name: Mapped[str] = mapped_column(String(255))
+    # Nomi tarixiy: son duration_unit birligida (oy yoki kun)
     duration_months: Mapped[int] = mapped_column(Integer)
+    duration_unit: Mapped[str] = mapped_column(String(8), default="month", server_default="month")
     quantity: Mapped[int] = mapped_column(
         Integer, CheckConstraint("quantity >= 1", name="ck_orders_quantity_positive"), default=1, server_default="1"
     )

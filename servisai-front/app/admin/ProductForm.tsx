@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Close } from "../components/icons";
-import { api, type AdminProduct, type DeliveryMode, type ProductBadge, type ProductCategory, type ProductInput } from "../lib/api";
+import { api, type AdminProduct, type DeliveryMode, type DurationUnit, type ProductBadge, type ProductCategory, type ProductInput } from "../lib/api";
 import {
   badgeStyles,
   catalogCategories,
@@ -52,6 +52,8 @@ export default function ProductForm({
   const [price, setPrice] = useState<number | null>(product?.price ?? null);
   const [oldPrice, setOldPrice] = useState<number | null>(product?.old_price ?? null);
   const [durations, setDurations] = useState<number[]>(product?.durations ?? [1]);
+  const [durationUnit, setDurationUnit] = useState<DurationUnit>(product?.duration_unit ?? "month");
+  const unitWord = durationUnit === "day" ? "kun" : "oy";
   const [customDuration, setCustomDuration] = useState("");
   const [category, setCategory] = useState<ProductCategory>(product?.category ?? "chat");
   const [badge, setBadge] = useState<ProductBadge | "">(product?.badge ?? "");
@@ -60,6 +62,7 @@ export default function ProductForm({
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
   // "" — cheklanmagan
   const [stock, setStock] = useState(product?.stock === null || product?.stock === undefined ? "" : String(product.stock));
+  const [soldBase, setSoldBase] = useState(String(product?.sold_base ?? 0));
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>(product?.delivery_mode ?? "manual");
   const [deliveryTime, setDeliveryTime] = useState(product?.delivery_time ?? DELIVERY_TIME_PRESETS[0]);
   const [notes, setNotes] = useState(product?.notes ?? "");
@@ -79,7 +82,7 @@ export default function ProductForm({
 
   const addCustomDuration = () => {
     const d = Number(customDuration);
-    if (Number.isInteger(d) && d >= 1 && d <= 120 && !durations.includes(d)) toggleDuration(d);
+    if (Number.isInteger(d) && d >= 1 && d <= 366 && !durations.includes(d)) toggleDuration(d);
     setCustomDuration("");
   };
 
@@ -110,6 +113,7 @@ export default function ProductForm({
       price,
       old_price: oldPrice,
       durations,
+      duration_unit: durationUnit,
       category,
       badge: badge || null,
       features: features
@@ -118,6 +122,7 @@ export default function ProductForm({
         .filter(Boolean),
       sort_order: sortOrder,
       stock: stock === "" ? null : Number(stock),
+      sold_base: Number(soldBase) || 0,
       delivery_mode: deliveryMode,
       delivery_time: deliveryTime.trim(),
       notes: notes.trim(),
@@ -143,11 +148,13 @@ export default function ProductForm({
     price: price ?? 0,
     old_price: oldPrice,
     durations: durations.length ? durations : [1],
+    duration_unit: durationUnit,
     category,
     badge: badge || null,
     features: [],
     stock: stock === "" ? null : Number(stock),
-    sold_count: product?.sold_count ?? 0,
+    // Haqiqiy xaridlar o‘zgarmaydi, faqat boshlang‘ich son tahrirlanadi
+    sold_count: (product ? product.sold_count - product.sold_base : 0) + (Number(soldBase) || 0),
     delivery_time: deliveryTime,
     instant_delivery: deliveryMode === "auto",
     notes,
@@ -215,7 +222,27 @@ export default function ProductForm({
               </Field>
             </div>
 
-            <Field label="Obuna muddati (oy)" required hint="Narx birinchi (eng qisqa) muddat uchun ko‘rsatiladi">
+            <Field label="Muddat" required hint="Narx birinchi (eng qisqa) muddat uchun ko‘rsatiladi">
+              <div className="mb-2 inline-flex rounded-xl bg-slate-100 p-1">
+                {(
+                  [
+                    { id: "month", label: "Oy" },
+                    { id: "day", label: "Kun" },
+                  ] as const
+                ).map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    aria-pressed={durationUnit === u.id}
+                    onClick={() => setDurationUnit(u.id)}
+                    className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition ${
+                      durationUnit === u.id ? "bg-white text-brand shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {u.label}
+                  </button>
+                ))}
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 {[...new Set([...DURATION_PRESETS, ...durations])].sort((a, b) => a - b).map((d) => {
                   const on = durations.includes(d);
@@ -229,7 +256,7 @@ export default function ProductForm({
                         on ? "bg-brand text-white shadow-md shadow-blue-600/20" : "bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:ring-brand"
                       }`}
                     >
-                      {d} oy
+                      {d} {unitWord}
                     </button>
                   );
                 })}
@@ -245,7 +272,7 @@ export default function ProductForm({
                     }}
                     inputMode="numeric"
                     placeholder="boshqa"
-                    aria-label="Boshqa muddat (oy)"
+                    aria-label={`Boshqa muddat (${unitWord})`}
                     className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand"
                   />
                   <button type="button" onClick={addCustomDuration} className="rounded-xl px-3 py-2 text-sm font-semibold text-brand hover:bg-brand-soft">
@@ -284,6 +311,20 @@ export default function ProductForm({
               </div>
             </Field>
             )}
+
+            <Field
+              label="Boshlang‘ich “sotib olganlar” soni"
+              hint={`Saytda reyting yonida qavs ichida chiqadi; har bir xarid shu songa qo‘shiladi.${
+                product ? ` Haqiqiy xaridlar: ${product.sold_count - product.sold_base} ta → saytda: ${preview.sold_count} ta` : ""
+              }`}
+            >
+              <input
+                inputMode="numeric"
+                value={soldBase}
+                onChange={(e) => setSoldBase(e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 7))}
+                className={`${inputCls} max-w-48`}
+              />
+            </Field>
 
             <div className="rounded-2xl bg-slate-50/80 p-4 ring-1 ring-slate-100">
               <p className="text-sm font-semibold">Yetkazib berish</p>
@@ -418,7 +459,7 @@ export default function ProductForm({
                 <span className="text-lg font-bold">{formatPrice(preview.price)} so‘m</span>
                 {preview.old_price && <span className="text-xs text-slate-400 line-through">{formatPrice(preview.old_price)} so‘m</span>}
               </p>
-              <p className="text-xs text-slate-400">/ {preview.durations[0]} oy</p>
+              <p className="text-xs text-slate-400">/ {preview.durations[0]} {unitWord}</p>
               {previewStock && <p className={`mt-2 text-xs font-semibold ${soldOut ? "text-slate-500" : "text-emerald-600"}`}>{previewStock}</p>}
               <div className={`mt-3 rounded-xl py-2.5 text-center text-sm font-semibold text-white ${soldOut ? "bg-slate-400" : "bg-brand"}`}>
                 {soldOut ? "Tugagan" : "Sotib olish"}

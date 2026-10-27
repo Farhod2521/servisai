@@ -3,19 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useProducts } from "../lib/products";
-import {
-  discountPercent,
-  formatPrice,
-  isSoldOut,
-  stockLabel,
-  toCatalogProduct,
-  type CatalogProduct,
-} from "../mahsulotlar/catalog-data";
+import { type CatalogProduct, discountPercent, durationText, formatPrice, isSoldOut, stockLabel, toCatalogProduct } from "../mahsulotlar/catalog-data";
 import { categories, type CategoryId } from "./data";
 import { ArrowRight, Bolt, Cart, CheckCircle, Gift, Headset, Shield, Star } from "./icons";
 
-// Bosh sahifada ko‘rsatiladigan eng ko‘p servislar soni (tartib admin paneldagi "Tartib raqami" bo‘yicha)
-const LIMIT = 6;
+// Bosh sahifada ko‘rsatiladigan servislar soni (tartib admin paneldagi "Tartib raqami" bo‘yicha), qolganlari — katalogda
+const LIMIT = 3;
 // Kartochkadagi imkoniyatlar soni (admin paneldagi "Nimalar kiradi?" ro‘yxatining boshidan)
 const FEATURES_SHOWN = 3;
 
@@ -92,6 +85,21 @@ export default function Products() {
         )}
       </div>
 
+      <div className="mt-10 text-center">
+        <Link
+          href="/mahsulotlar"
+          className="group inline-flex items-center gap-2.5 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-brand shadow-md shadow-blue-900/5 ring-1 ring-brand/20 transition hover:bg-brand hover:text-white hover:shadow-lg hover:shadow-blue-600/25"
+        >
+          Barchasini ko‘rish
+          {products && products.length > LIMIT && (
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand transition group-hover:bg-white/20 group-hover:text-white">
+              {products.length} ta
+            </span>
+          )}
+          <ArrowRight className="size-5 transition group-hover:translate-x-1" />
+        </Link>
+      </div>
+
       <ul className="mx-auto mt-12 flex max-w-4xl flex-wrap items-center justify-center gap-y-4 text-sm text-slate-600">
         {trust.map(({ icon: Icon, label }, i) => (
           <li key={label} className={`flex items-center gap-2.5 px-6 ${i > 0 ? "sm:border-l sm:border-slate-200" : ""}`}>
@@ -158,7 +166,7 @@ function ProductCard({ product: p }: { product: CatalogProduct }) {
           <p className="whitespace-nowrap text-[2rem] font-extrabold leading-tight tracking-tight">
             {formatPrice(p.price)} <span className="text-lg font-bold">so‘m</span>
           </p>
-          <p className="text-slate-500">/ {p.durations[0]} oy</p>
+          <p className="text-slate-500">/ {durationText(p.durations[0], p.duration_unit)}</p>
         </div>
         {p.old_price && (
           <div className="flex shrink-0 items-center gap-2.5 rounded-2xl bg-emerald-50 px-3.5 py-3 text-emerald-700">

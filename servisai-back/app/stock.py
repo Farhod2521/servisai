@@ -21,7 +21,8 @@ async def attach_sold_counts(session: AsyncSession, products: Sequence[Product])
         )
         counts = dict(rows.all())
         for p in products:
-            p.sold_count = counts.get(p.id, 0)
+            # Saytda ko‘rsatiladigan son: boshlang‘ich qiymat + haqiqiy xaridlar
+            p.sold_count = (p.sold_base or 0) + counts.get(p.id, 0)
     return products
 
 

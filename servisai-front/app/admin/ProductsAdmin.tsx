@@ -156,7 +156,7 @@ export default function ProductsAdmin({ startWithNew, onNewHandled }: { startWit
                     <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700">Sotilgan: {p.sold_count} ta</span>
                   </div>
                   <p className="mt-0.5 text-xs text-slate-400">
-                    /{p.id} · {category?.label ?? p.category} · {p.durations.join("/")} oy · tartib {p.sort_order}
+                    /{p.id} · {category?.label ?? p.category} · {p.durations.join("/")} {p.duration_unit === "day" ? "kun" : "oy"} · tartib {p.sort_order}
                   </p>
                   <p className="mt-1 line-clamp-1 text-sm text-slate-500">{p.description || "Tavsif yozilmagan"}</p>
                 </div>

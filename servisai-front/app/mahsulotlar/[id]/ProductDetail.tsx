@@ -5,18 +5,8 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { ArrowRight, Bolt, CheckCircle, ChevronRight, Clock, Headset, Shield, Star } from "../../components/icons";
 import { useProducts } from "../../lib/products";
-import {
-  badgeStyles,
-  catalogCategories,
-  discountPercent,
-  formatCount,
-  formatPrice,
-  isSoldOut,
-  productTypes,
-  sellers,
-  stockLabel,
-  toCatalogProduct,
-} from "../catalog-data";
+import { badgeStyles, catalogCategories, discountPercent, durationText, formatCount, formatPrice, isSoldOut, periodText, productTypes, sellers, stockLabel, toCatalogProduct } from "../catalog-data";
+import Linkify from "../../components/Linkify";
 import BuyButton from "./BuyButton";
 
 /** `children` — mahsulot ma’lumoti va "Boshqa servislar" orasida turadigan server bo‘limi */
@@ -50,9 +40,10 @@ export default function ProductDetail({ id, children }: { id: string; children: 
   const badge = p.badge && badgeStyles[p.badge];
   const discount = discountPercent(p);
   const category = catalogCategories.find((c) => c.id === p.category);
-  const chips = [sellers.find((s) => s.id === p.seller)?.label, productTypes.find((t) => t.id === p.type)?.label].filter(
-    Boolean,
-  );
+  // Takrorlanmasin (masalan, sotuvchi ham, turi ham "API kredit")
+  const chips = [
+    ...new Set([sellers.find((s) => s.id === p.seller)?.label, productTypes.find((t) => t.id === p.type)?.label].filter(Boolean)),
+  ];
   const others = products!.filter((o) => o.id !== p.id).map(toCatalogProduct);
   const soldOut = isSoldOut(p);
   const stock = stockLabel(p);
@@ -98,10 +89,9 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                       {p.rating !== undefined && (
                         <span className="flex items-center gap-1 font-semibold text-slate-800">
                           <Star className="size-4 text-amber-400" /> {p.rating.toFixed(1)}
-                          {p.reviews !== undefined && <span className="font-normal text-slate-500">({formatCount(p.reviews)} ta sharh)</span>}
                         </span>
                       )}
-                      {p.sold_count > 0 && <span>{formatCount(p.sold_count)} ta sotilgan</span>}
+                      {p.sold_count > 0 && <span>({formatCount(p.sold_count)} ta sotib olingan)</span>}
                     </div>
                   )}
                 </div>
@@ -154,8 +144,8 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                     .map((line) => line.trim())
                     .filter(Boolean)
                     .map((line) => (
-                      <li key={line} className="rounded-2xl bg-white/80 px-4 py-3 text-[15px] leading-relaxed text-slate-700 ring-1 ring-amber-100">
-                        {line}
+                      <li key={line} className="break-words rounded-2xl bg-white/80 px-4 py-3 text-[15px] leading-relaxed text-slate-700 ring-1 ring-amber-100">
+                        <Linkify text={line} />
                       </li>
                     ))}
                 </ul>
@@ -192,7 +182,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                 <div>
                   {p.old_price && <p className="text-sm text-slate-400 line-through decoration-rose-400">{formatPrice(p.old_price)} so‘m</p>}
                   <p className="text-[2rem] font-extrabold leading-tight tracking-tight">{formatPrice(p.price)} so‘m</p>
-                  <p className="text-sm text-slate-500">{p.durations[0]} oylik obuna uchun</p>
+                  <p className="text-sm text-slate-500">{periodText(p.durations[0], p.duration_unit)} muddat uchun</p>
                 </div>
                 {discount > 0 && (
                   <span className="rounded-xl bg-rose-500 px-2.5 py-1 text-sm font-extrabold text-white shadow-md shadow-rose-500/30">−{discount}%</span>
@@ -205,7 +195,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                   <div className="mt-2 flex flex-wrap gap-2">
                     {p.durations.map((d) => (
                       <span key={d} className="rounded-xl bg-brand-soft px-4 py-2 text-sm font-semibold text-brand ring-2 ring-brand">
-                        {d} oy
+                        {durationText(d, p.duration_unit)}
                       </span>
                     ))}
                   </div>
@@ -286,7 +276,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                 <div className="min-w-0 flex-1">
                   <p className="font-bold">{o.name}</p>
                   <p className="text-sm text-slate-500">
-                    {isSoldOut(o) ? "Tugagan" : `${formatPrice(o.price)} so‘m / ${o.durations[0]} oy`}
+                    {isSoldOut(o) ? "Tugagan" : `${formatPrice(o.price)} so‘m / ${durationText(o.durations[0], o.duration_unit)}`}
                   </p>
                 </div>
                 <ChevronRight className="size-5 text-slate-400" />

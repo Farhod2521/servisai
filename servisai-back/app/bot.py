@@ -32,7 +32,7 @@ from .accounts import AccountConflict, upsert_telegram_user
 from .config import settings
 from .database import SessionLocal
 from .models import Order, OrderStatus, Product, TelegramLoginSession, TelegramLoginStatus, TopUp, User
-from .notify import STATUS_LABELS, format_price, notify_order_created, notify_topup_result
+from .notify import STATUS_LABELS, duration_label, format_price, notify_order_created, notify_topup_result
 from .referrals import bot_link, ensure_code, friends_count, grant_rewards, notify_grants, notify_referral
 from .schemas import MAX_ORDER_QUANTITY
 from .shop import ShopError, place_order
@@ -255,7 +255,7 @@ async def product_view(target: CallbackQuery, product_id: str, qty: int) -> None
     max_qty = min(p.stock if p.stock is not None else MAX_ORDER_QUANTITY, MAX_ORDER_QUANTITY)
     qty = max(1, min(qty, max_qty)) if max_qty > 0 else 1
 
-    price = f"<b>{format_price(p.price)} so‘m</b> / {p.durations[0]} oy"
+    price = f"<b>{format_price(p.price)} so‘m</b> / {duration_label(p.durations[0], p.duration_unit)}"
     if p.old_price:
         discount = round((1 - p.price / p.old_price) * 100)
         price += f"  <s>{format_price(p.old_price)}</s>  🔥 −{discount}%"

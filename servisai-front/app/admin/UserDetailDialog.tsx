@@ -5,7 +5,7 @@ import { Avatar } from "../components/auth/UserMenu";
 import { Close, Copy, Send } from "../components/icons";
 import Linkify from "../components/Linkify";
 import { api, formatDate, statusMeta, topUpStatusMeta, type AdminUserDetail } from "../lib/api";
-import { formatPrice } from "../mahsulotlar/catalog-data";
+import { durationText, formatPrice } from "../mahsulotlar/catalog-data";
 import { ErrorText } from "../profil/ui";
 
 /** Foydalanuvchi kartasi: balans, qancha to‘ldirgan, nima sotib olgan va unga berilgan havolalar */
@@ -117,7 +117,7 @@ export default function UserDetailDialog({ userId, onClose }: { userId: number; 
                           <p className="font-semibold">
                             {o.product_name}
                             {o.quantity > 1 && <span className="text-brand"> × {o.quantity}</span>}
-                            <span className="font-normal text-slate-400"> · {o.duration_months} oy</span>
+                            <span className="font-normal text-slate-400"> · {durationText(o.duration_months, o.duration_unit)}</span>
                           </p>
                           <span className="font-bold">{formatPrice(o.price)} so‘m</span>
                         </div>

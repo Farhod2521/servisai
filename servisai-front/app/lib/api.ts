@@ -25,7 +25,9 @@ export type Order = {
   number: string;
   product_id: string | null;
   product_name: string;
+  /** Nomi tarixiy: son duration_unit birligida */
   duration_months: number;
+  duration_unit: DurationUnit;
   quantity: number;
   /** Jami to‘langan summa (narx × soni) */
   price: number;
@@ -82,6 +84,8 @@ export type Transaction = {
   created_at: string;
 };
 
+export type DurationUnit = "day" | "month";
+
 export type ProductCategory = "chat" | "design" | "code" | "office" | "social" | "other";
 export type ProductBadge = "popular" | "sale" | "new" | "api";
 
@@ -92,6 +96,8 @@ export type Product = {
   price: number;
   old_price: number | null;
   durations: number[];
+  /** durations birligi: month — oy, day — kun */
+  duration_unit: DurationUnit;
   category: ProductCategory;
   badge: ProductBadge | null;
   features: string[];
@@ -116,6 +122,8 @@ export type AdminProduct = Product & {
   updated_at: string;
   /** auto — har xaridorga ro‘yxatdan alohida havola/kod; soni = berilmagan elementlar soni */
   delivery_mode: DeliveryMode;
+  /** Boshlang‘ich "sotib olganlar" soni (sold_count = sold_base + haqiqiy xaridlar) */
+  sold_base: number;
 };
 
 export type DeliveryItem = {

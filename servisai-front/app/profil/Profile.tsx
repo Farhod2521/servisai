@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../components/auth/AuthProvider";
 import { Avatar } from "../components/auth/UserMenu";
 import { ArrowRight, Gift, GoogleLogo, History, LogOut, Receipt, Send, UserIcon, Wallet } from "../components/icons";
-import { formatPrice } from "../mahsulotlar/catalog-data";
+import { durationText, formatPrice } from "../mahsulotlar/catalog-data";
 import {
   api,
   formatDate,
@@ -444,7 +444,7 @@ function OrderRow({
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold">{order.product_name}</p>
           <p className="mt-0.5 text-xs text-slate-500">
-            {order.number} · {formatDate(order.created_at)} · {order.duration_months} oy
+            {order.number} · {formatDate(order.created_at)} · {durationText(order.duration_months, order.duration_unit)}
             {order.quantity > 1 && ` · ${order.quantity} ta`}
           </p>
         </div>

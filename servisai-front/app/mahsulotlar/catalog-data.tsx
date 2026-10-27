@@ -55,10 +55,14 @@ export type CatalogProduct = Product & {
   logo: ReactNode;
   // Faqat ma’lumoti bor servislar uchun ko‘rsatiladi
   rating?: number;
-  reviews?: number;
   type?: ProductType;
   seller?: Seller;
 };
+
+/** 3, "day" -> "3 kun"; 1, "month" -> "1 oy" */
+export const durationText = (n: number, unit: string) => `${n} ${unit === "day" ? "kun" : "oy"}`;
+/** 1, "month" -> "1 oylik"; 1, "day" -> "1 kunlik" */
+export const periodText = (n: number, unit: string) => `${n} ${unit === "day" ? "kunlik" : "oylik"}`;
 
 /** 1234567 -> "1 234 567" (toLocaleString server/brauzerda turli bo‘shliq qaytarishi mumkin) */
 export const formatPrice = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -93,6 +97,25 @@ const logos = {
       <CapCutLogo className="size-3/5" />
     </div>
   ),
+  // Claude: to‘q sariq fonda oq "quyosh"
+  claude: (
+    <div className={`${tile} bg-[#d97757]`}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.1} strokeLinecap="round" className="size-3/5" aria-hidden="true">
+        {Array.from({ length: 12 }, (_, i) => (
+          <line key={i} x1="12" y1="12" x2="12" y2={i % 2 ? 3.6 : 1.8} transform={`rotate(${i * 30} 12 12)`} />
+        ))}
+      </svg>
+    </div>
+  ),
+  // Codex: och binafsha fonda terminal belgisi va yozuv
+  codex: (
+    <div className="flex size-full flex-col items-center justify-center gap-[6%] rounded-2xl bg-gradient-to-br from-[#f1f2ff] to-[#dfe3ff] ring-1 ring-indigo-100">
+      <span className="grid size-[38%] place-items-center rounded-[30%] bg-gradient-to-br from-[#7b8cff] to-[#4f46e5] font-mono text-[0.7em] font-bold leading-none text-white shadow-sm">
+        &gt;_
+      </span>
+      <span className="text-[0.85em] font-semibold leading-none tracking-tight text-[#0b1437]">Codex</span>
+    </div>
+  ),
 };
 
 const fallbackColors = [
@@ -117,9 +140,15 @@ export function FallbackLogo({ id, name }: { id: string; name: string }) {
 type Extras = Omit<CatalogProduct, keyof Product>;
 
 const extras: Record<string, Extras> = {
-  "chatgpt-plus": { logo: logos.openai, rating: 4.9, reviews: 1200, type: "individual", seller: "official" },
-  "gemini-advanced": { logo: logos.gemini, rating: 4.8, reviews: 760, type: "individual", seller: "official" },
-  "capcut-pro": { logo: logos.capcut, rating: 4.7, reviews: 650, type: "individual", seller: "warranty" },
+  "chatgpt-plus": { logo: logos.openai, rating: 4.9, type: "individual", seller: "official" },
+  "gemini-advanced": { logo: logos.gemini, rating: 4.8, type: "individual", seller: "official" },
+  "capcut-pro": { logo: logos.capcut, rating: 4.7, type: "individual", seller: "warranty" },
+  "claude-api-10m": { logo: logos.claude, type: "api", seller: "api" },
+  "claude-api-50m": { logo: logos.claude, type: "api", seller: "api" },
+  "claude-api-100m": { logo: logos.claude, type: "api", seller: "api" },
+  "codex-api-10m": { logo: logos.codex, type: "api", seller: "api" },
+  "codex-api-20m": { logo: logos.codex, type: "api", seller: "api" },
+  "codex-api-50m": { logo: logos.codex, type: "api", seller: "api" },
 };
 
 /** Build vaqtida oldindan tayyorlanadigan servis sahifalari */

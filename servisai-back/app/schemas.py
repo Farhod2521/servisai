@@ -366,6 +366,17 @@ class MyRewardOut(BaseModel):
     order_number: str | None
 
 
+class PublicRewardOut(BaseModel):
+    """Saytdagi taklif oynasi uchun (kirmagan foydalanuvchiga ham ko‘rinadi)."""
+
+    id: int
+    title: str
+    required_friends: int
+    product_id: str
+    product_name: str
+    quantity: int
+
+
 class MyReferralOut(BaseModel):
     code: str
     site_link: str

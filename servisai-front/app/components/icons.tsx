@@ -284,6 +284,19 @@ export const CloudUpload = (p: IconProps) => (
   </Base>
 );
 
+export const UserPlus = (p: IconProps) => (
+  <Base {...p}>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6" />
+  </Base>
+);
+export const LinkIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+    <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+  </Base>
+);
+
 /* ---------- Brand logos (soddalashtirilgan) ---------- */
 
 export const OpenAILogo = (p: IconProps) => (

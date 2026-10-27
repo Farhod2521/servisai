@@ -4,7 +4,7 @@ from sqlalchemy import select
 from ..deps import CurrentUser, SessionDep
 from ..models import Order, ReferralReward, RewardGrant, User
 from ..referrals import bot_link, ensure_code, friends_count, grant_rewards, notify_grants, site_link
-from ..schemas import ClaimOut, MyReferralOut, MyRewardOut, ReferralFriendOut
+from ..schemas import ClaimOut, MyReferralOut, MyRewardOut, PublicRewardOut, ReferralFriendOut
 
 router = APIRouter(prefix="/referrals", tags=["referrals"])
 
@@ -37,6 +37,28 @@ async def _rewards(session: SessionDep, user: User, friends: int) -> list[MyRewa
             order_number=granted.get(r.id),
         )
         for r in rewards
+    ]
+
+
+@router.get("/rewards", response_model=list[PublicRewardOut])
+async def public_rewards(session: SessionDep):
+    """Faol sovg‘alar (eng kam do‘st talab qiladigani birinchi) — saytdagi taklif oynasi uchun."""
+    rewards = (
+        await session.scalars(
+            select(ReferralReward).where(ReferralReward.is_active).order_by(ReferralReward.required_friends, ReferralReward.id)
+        )
+    ).all()
+    return [
+        PublicRewardOut(
+            id=r.id,
+            title=r.title,
+            required_friends=r.required_friends,
+            product_id=r.product_id,
+            product_name=r.product.name,
+            quantity=r.quantity,
+        )
+        for r in rewards
+        if r.product.is_active
     ]
 
 

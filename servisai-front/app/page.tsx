@@ -5,6 +5,7 @@ import { CallToAction, Features, HowItWorks, PromoBanner } from "./components/Se
 import Testimonials from "./components/Testimonials";
 import Faq from "./components/Faq";
 import Footer from "./components/Footer";
+import ReferralPromo from "./components/ReferralPromo";
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
         <CallToAction />
       </main>
       <Footer />
+      <ReferralPromo />
     </>
   );
 }

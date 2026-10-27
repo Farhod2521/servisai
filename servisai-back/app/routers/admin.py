@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy import case, func, or_, select
 
 from ..deps import AdminUser, SessionDep
-from ..models import DeliveryItem, Order, OrderStatus, Product, ReferralReward, RewardGrant, TopUp, TopUpStatus, User
+from ..models import DeliveryItem, Order, OrderStatus, Product, ReferralReward, RewardGrant, Suggestion, TopUp, TopUpStatus, User
 from ..referrals import friends_count
 from ..schemas import (
     AdminOrderOut,
@@ -58,6 +58,7 @@ async def stats(_: AdminUser, session: SessionDep):
         )
     ).one()
     topups_pending = await session.scalar(select(func.count(TopUp.id)).where(TopUp.status == TopUpStatus.pending))
+    suggestions_new = await session.scalar(select(func.count(Suggestion.id)).where(Suggestion.reply.is_(None)))
     return AdminStats(
         users_total=users_total,
         users_new_7d=users_new,
@@ -68,6 +69,7 @@ async def stats(_: AdminUser, session: SessionDep):
         revenue_total=revenue_total,
         revenue_30d=revenue_month,
         topups_pending=topups_pending or 0,
+        suggestions_new=suggestions_new or 0,
     )
 
 

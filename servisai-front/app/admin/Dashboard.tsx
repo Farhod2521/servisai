@@ -8,7 +8,15 @@ import { Card, ErrorText } from "../profil/ui";
 
 type Data = { stats: AdminStats; orders: AdminOrder[]; top: TopProduct[] };
 
-export default function Dashboard({ onAddProduct, onOpenOrders }: { onAddProduct: () => void; onOpenOrders: () => void }) {
+export default function Dashboard({
+  onAddProduct,
+  onOpenOrders,
+  onOpenSuggestions,
+}: {
+  onAddProduct: () => void;
+  onOpenOrders: () => void;
+  onOpenSuggestions: () => void;
+}) {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +98,18 @@ export default function Dashboard({ onAddProduct, onOpenOrders }: { onAddProduct
             <b>{stats.orders_active} ta</b> buyurtma yetkazilishini kutmoqda
           </span>
           <span className="font-semibold">Yetkazish →</span>
+        </button>
+      )}
+
+      {stats.suggestions_new > 0 && (
+        <button
+          onClick={onOpenSuggestions}
+          className="flex w-full items-center justify-between gap-3 rounded-2xl bg-amber-50 px-5 py-3 text-left text-sm text-amber-800 ring-1 ring-amber-100 transition hover:ring-amber-300"
+        >
+          <span>
+            💡 <b>{stats.suggestions_new} ta</b> taklif javob kutmoqda
+          </span>
+          <span className="font-semibold">Javob berish →</span>
         </button>
       )}
 

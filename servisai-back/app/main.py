@@ -2,7 +2,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import admin, auth, orders, products, referrals, users, wallet
+from .routers import admin, auth, orders, products, referrals, suggestions, users, wallet
 
 app = FastAPI(title="servisai.uz API", version="1.0.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -24,6 +24,8 @@ api.include_router(wallet.router)
 api.include_router(wallet.admin_router)
 api.include_router(admin.router)
 api.include_router(referrals.router)
+api.include_router(suggestions.router)
+api.include_router(suggestions.admin_router)
 
 
 @api.get("/health", tags=["system"])

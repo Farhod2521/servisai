@@ -2,11 +2,12 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../components/auth/AuthProvider";
-import { Box, Chart, Gift, Receipt, Shield, Users } from "../components/icons";
+import { Box, Chart, Gift, Lightbulb, Receipt, Shield, Users } from "../components/icons";
 import Dashboard from "./Dashboard";
 import ProductsAdmin from "./ProductsAdmin";
 import OrdersAdmin from "./OrdersAdmin";
 import RewardsAdmin from "./RewardsAdmin";
+import SuggestionsAdmin from "./SuggestionsAdmin";
 import UsersAdmin from "./UsersAdmin";
 
 const tabs = [
@@ -15,6 +16,7 @@ const tabs = [
   { id: "buyurtmalar", label: "Buyurtmalar", icon: Receipt },
   { id: "foydalanuvchilar", label: "Foydalanuvchilar", icon: Users },
   { id: "sovgalar", label: "Sovg‘alar", icon: Gift },
+  { id: "takliflar", label: "Takliflar", icon: Lightbulb },
 ] as const;
 
 export type AdminTab = (typeof tabs)[number]["id"];
@@ -75,13 +77,14 @@ export default function AdminPanel() {
       </aside>
 
       <section className="min-w-0">
-        {tab === "dashboard" && <Dashboard onAddProduct={() => select("mahsulotlar", "&yangi=1")} onOpenOrders={() => select("buyurtmalar")} />}
+        {tab === "dashboard" && <Dashboard onAddProduct={() => select("mahsulotlar", "&yangi=1")} onOpenOrders={() => select("buyurtmalar")} onOpenSuggestions={() => select("takliflar")} />}
         {tab === "mahsulotlar" && (
           <ProductsAdmin startWithNew={params.get("yangi") === "1"} onNewHandled={() => select("mahsulotlar")} />
         )}
         {tab === "buyurtmalar" && <OrdersAdmin />}
         {tab === "foydalanuvchilar" && <UsersAdmin />}
         {tab === "sovgalar" && <RewardsAdmin />}
+        {tab === "takliflar" && <SuggestionsAdmin />}
       </section>
     </div>
   );

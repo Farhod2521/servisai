@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Footer from "../components/Footer";
+import SuggestionWidget from "../components/SuggestionWidget";
 import Catalog from "./Catalog";
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export default function ProductsPage() {
     <>
       <Catalog />
       <Footer />
+      <SuggestionWidget />
     </>
   );
 }

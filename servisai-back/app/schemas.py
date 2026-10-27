@@ -166,6 +166,7 @@ class AdminStats(BaseModel):
     revenue_total: int
     revenue_30d: int
     topups_pending: int
+    suggestions_new: int
 
 
 class AdminUserOut(BaseModel):
@@ -434,3 +435,38 @@ class TopReferrerOut(BaseModel):
     user_name: str
     user_telegram_username: str | None
     friends: int
+
+
+# ---------- Takliflar ----------
+
+
+class SuggestionIn(BaseModel):
+    text: str = Field(min_length=3, max_length=2000)
+
+    @field_validator("text")
+    @classmethod
+    def _strip(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 3:
+            raise ValueError("Taklif juda qisqa")
+        return v
+
+
+class SuggestionReply(SuggestionIn):
+    pass
+
+
+class SuggestionOut(ORM):
+    id: int
+    text: str
+    reply: str | None
+    replied_at: datetime | None
+    reply_seen: bool
+    created_at: datetime
+
+
+class AdminSuggestionOut(SuggestionOut):
+    user_id: int
+    user_name: str
+    user_telegram_username: str | None
+    replied_by: str | None

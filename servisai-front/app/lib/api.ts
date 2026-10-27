@@ -150,6 +150,8 @@ export type AdminStats = {
   revenue_total: number;
   revenue_30d: number;
   topups_pending: number;
+  /** Javob berilmagan takliflar */
+  suggestions_new: number;
 };
 
 export type AdminOrder = Order & {
@@ -348,3 +350,21 @@ export type RewardGrant = {
 };
 
 export type TopReferrer = { user_id: number; user_name: string; user_telegram_username: string | null; friends: number };
+
+/* ---------- Takliflar ---------- */
+
+export type Suggestion = {
+  id: number;
+  text: string;
+  reply: string | null;
+  replied_at: string | null;
+  reply_seen: boolean;
+  created_at: string;
+};
+
+export type AdminSuggestion = Suggestion & {
+  user_id: number;
+  user_name: string;
+  user_telegram_username: string | null;
+  replied_by: string | null;
+};

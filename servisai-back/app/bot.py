@@ -43,7 +43,7 @@ from .wallet import TopUpAlreadyReviewed, review_topup
 log = logging.getLogger("servisai.bot")
 dp = Dispatcher()
 
-SUPPORT_URL = "https://t.me/Boss_uz"
+SUPPORT_URL = "https://t.me/fen1xmedia"
 QUICK_AMOUNTS = [50_000, 100_000, 200_000, 500_000]
 TOPUP_STATUS = {"pending": "⏳ tekshirilmoqda", "approved": "✅ tasdiqlandi", "rejected": "❌ rad etildi"}
 

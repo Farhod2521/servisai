@@ -1,6 +1,6 @@
-"""Mahsulot logolari: yuklash, tekshirish va saqlash.
+"""Yuklanadigan ommaviy rasmlar: mahsulot logolari va e’lon (yangilik) rasmlari.
 
-Fayllar `media/logos` ga saqlanadi va `/api/media/logos/...` orqali ommaga beriladi
+Fayllar `media/<papka>` ga saqlanadi va `/api/media/<papka>/...` orqali ommaga beriladi
 (cheklar `media/receipts` da — ular ochiq EMAS).
 """
 
@@ -9,6 +9,8 @@ from pathlib import Path
 
 from .config import settings
 
+# Ommaga ochiq papkalar (main.py da mount qilinadi)
+PUBLIC_FOLDERS = ("logos", "banners")
 LOGO_URL_PREFIX = "/api/media/logos/"
 MAX_LOGO_SIZE = 2 * 1024 * 1024
 
@@ -27,10 +29,15 @@ class LogoError(Exception):
         self.message = message
 
 
+def media_dir(folder: str) -> Path:
+    assert folder in PUBLIC_FOLDERS
+    path = Path(settings.media_dir) / folder
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def logos_dir() -> Path:
-    folder = Path(settings.media_dir) / "logos"
-    folder.mkdir(parents=True, exist_ok=True)
-    return folder
+    return media_dir("logos")
 
 
 def detect_format(content: bytes) -> str | None:
@@ -38,24 +45,33 @@ def detect_format(content: bytes) -> str | None:
     return next((ext for ext, check in _SIGNATURES.items() if check(content)), None)
 
 
-def save_logo(content: bytes) -> str:
+def save_image(content: bytes, folder: str) -> str:
     if not content:
         raise LogoError(422, "Fayl bo‘sh")
     if len(content) > MAX_LOGO_SIZE:
-        raise LogoError(413, "Logo hajmi 2 MB dan oshmasligi kerak")
+        raise LogoError(413, "Rasm hajmi 2 MB dan oshmasligi kerak")
     ext = detect_format(content)
     if ext is None:
-        raise LogoError(422, "Logo PNG, JPG yoki WEBP rasm bo‘lishi kerak")
+        raise LogoError(422, "Rasm PNG, JPG yoki WEBP bo‘lishi kerak")
     name = f"{uuid.uuid4().hex}.{ext}"
-    (logos_dir() / name).write_bytes(content)
-    return LOGO_URL_PREFIX + name
+    (media_dir(folder) / name).write_bytes(content)
+    return f"/api/media/{folder}/{name}"
+
+
+def delete_image(url: str | None, folder: str) -> None:
+    """Faqat o‘zimiz yuklagan faylni o‘chiradi (yo‘l tashqariga chiqmasligi tekshiriladi)."""
+    prefix = f"/api/media/{folder}/"
+    if not url or not url.startswith(prefix):
+        return
+    name = url[len(prefix):]
+    if "/" in name or "\\" in name or name.startswith("."):
+        return
+    (media_dir(folder) / name).unlink(missing_ok=True)
+
+
+def save_logo(content: bytes) -> str:
+    return save_image(content, "logos")
 
 
 def delete_logo(url: str | None) -> None:
-    """Faqat o‘zimiz yuklagan faylni o‘chiradi (yo‘l tashqariga chiqmasligi tekshiriladi)."""
-    if not url or not url.startswith(LOGO_URL_PREFIX):
-        return
-    name = url[len(LOGO_URL_PREFIX):]
-    if "/" in name or "\\" in name or name.startswith("."):
-        return
-    (logos_dir() / name).unlink(missing_ok=True)
+    delete_image(url, "logos")

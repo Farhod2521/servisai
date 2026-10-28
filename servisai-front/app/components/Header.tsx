@@ -7,6 +7,7 @@ import { useAuth } from "./auth/AuthProvider";
 import UserMenu, { accountLinksFor } from "./auth/UserMenu";
 import { Cart, Close, LogOut, Menu, Search } from "./icons";
 import LogoMark from "./LogoMark";
+import ThemeToggle from "./ThemeToggle";
 
 const links = [
   { href: "/", label: "Bosh sahifa" },
@@ -84,6 +85,7 @@ export default function Header({ search, cartCount = 0 }: HeaderProps) {
               <Search className="size-5" />
             </Link>
           )}
+          <ThemeToggle className="hidden sm:grid" />
           <button aria-label="Savat" className="relative grid size-10 place-items-center rounded-lg text-brand hover:bg-slate-100">
             <Cart className="size-5" />
             {cartCount > 0 && (
@@ -121,6 +123,7 @@ export default function Header({ search, cartCount = 0 }: HeaderProps) {
             </Link>
           ))}
           <div className="mt-2 border-t border-slate-100 pt-2">
+            <ThemeToggle withLabel className="sm:hidden" />
             {user ? (
               <>
                 {accountLinksFor(user).map(({ href, label, icon: Icon }) => (

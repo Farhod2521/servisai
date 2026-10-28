@@ -79,7 +79,7 @@ export const discountPercent = (p: Pick<Product, "price" | "old_price">) =>
 
 /* ---------- Logolar ---------- */
 
-const tile = "grid size-full place-items-center rounded-2xl";
+const tile = "keep-light grid size-full place-items-center rounded-2xl";
 
 const logos = {
   openai: (

@@ -239,7 +239,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                   </span>
                   <p className="mt-3 text-center text-xs text-slate-500">
                     Tez orada qayta sotuvga chiqadi.{" "}
-                    <a href="https://t.me/Boss_uz" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-700 underline">
+                    <a href="https://t.me/fen1xmedia" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-700 underline">
                       Admin bilan bog‘lanish
                     </a>
                   </p>

@@ -481,3 +481,38 @@ class AdminSuggestionOut(SuggestionOut):
     user_name: str
     user_telegram_username: str | None
     replied_by: str | None
+
+
+# ---------- Yangiliklar (e’lonlar) ----------
+
+
+class AnnouncementIn(BaseModel):
+    kind: Literal["custom", "referral"] = "custom"
+    title: str = Field(min_length=1, max_length=255)
+    highlight: str = Field(default="", max_length=255)
+    subtitle: str = Field(default="", max_length=255)
+    text: str = Field(default="", max_length=2000)
+    button_text: str = Field(default="", max_length=64)
+    # Ichki sahifa ("/mahsulotlar") yoki to‘liq havola (https://...)
+    button_url: str = Field(default="", max_length=512, pattern=r"^(|/[^\s]*|https?://[^\s]+)$")
+    is_active: bool = False
+
+    @field_validator("title", "highlight", "subtitle", "text", "button_text", "button_url")
+    @classmethod
+    def _strip(cls, v: str) -> str:
+        return v.strip()
+
+
+class AnnouncementOut(ORM):
+    id: int
+    kind: str
+    title: str
+    highlight: str
+    subtitle: str
+    text: str
+    button_text: str
+    button_url: str
+    image_url: str | None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime

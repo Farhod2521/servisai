@@ -11,7 +11,7 @@ import { Card, ErrorText } from "./ui";
 const QUICK_AMOUNTS = [50000, 100000, 200000, 500000];
 // Admin tasdiqlashini kutayotganda holatni shu oraliqda yangilab turamiz
 const POLL_MS = 15000;
-const ADMIN_TELEGRAM = "https://t.me/Boss_uz";
+const ADMIN_TELEGRAM = "https://t.me/fen1xmedia";
 const MAX_FILE_MB = 10;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const HISTORY_ID = "hisob-tarixi";
@@ -537,7 +537,7 @@ function WalletFaq({ wallet }: { wallet: Wallet }) {
     },
     {
       q: "To‘lov tasdiqlanmasa nima qilish kerak?",
-      a: "Chek rad etilsa, sababi “To‘ldirish so‘rovlari” ro‘yxatida yoziladi. Savol bo‘lsa, Telegram orqali adminga yozing: @Boss_uz.",
+      a: "Chek rad etilsa, sababi “To‘ldirish so‘rovlari” ro‘yxatida yoziladi. Savol bo‘lsa, Telegram orqali adminga yozing: @fen1xmedia.",
     },
   ];
   return (

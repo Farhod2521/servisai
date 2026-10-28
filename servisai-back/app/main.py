@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
-from .logos import logos_dir
-from .routers import admin, auth, orders, products, referrals, suggestions, users, wallet
+from .logos import PUBLIC_FOLDERS, media_dir
+from .routers import admin, announcements, auth, orders, products, referrals, suggestions, users, wallet
 
 app = FastAPI(title="servisai.uz API", version="1.0.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -28,6 +28,8 @@ api.include_router(admin.router)
 api.include_router(referrals.router)
 api.include_router(suggestions.router)
 api.include_router(suggestions.admin_router)
+api.include_router(announcements.router)
+api.include_router(announcements.admin_router)
 
 
 @api.get("/health", tags=["system"])
@@ -36,5 +38,6 @@ async def health():
 
 
 app.include_router(api)
-# Faqat logolar papkasi ommaga ochiq (cheklar media/receipts da yopiq qoladi)
-app.mount("/api/media/logos", StaticFiles(directory=logos_dir()), name="logos")
+# Faqat logolar va e’lon rasmlari ommaga ochiq (cheklar media/receipts da yopiq qoladi)
+for _folder in PUBLIC_FOLDERS:
+    app.mount(f"/api/media/{_folder}", StaticFiles(directory=media_dir(_folder)), name=_folder)

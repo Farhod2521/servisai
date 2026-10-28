@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../components/auth/AuthProvider";
-import { Box, Chart, Gift, Lightbulb, Receipt, Shield, Users } from "../components/icons";
+import { Box, Chart, Gift, Lightbulb, Megaphone, Receipt, Shield, Users } from "../components/icons";
+import AnnouncementsAdmin from "./AnnouncementsAdmin";
 import Dashboard from "./Dashboard";
 import ProductsAdmin from "./ProductsAdmin";
 import OrdersAdmin from "./OrdersAdmin";
@@ -17,6 +18,7 @@ const tabs = [
   { id: "foydalanuvchilar", label: "Foydalanuvchilar", icon: Users },
   { id: "sovgalar", label: "Sovg‘alar", icon: Gift },
   { id: "takliflar", label: "Takliflar", icon: Lightbulb },
+  { id: "yangiliklar", label: "Yangiliklar", icon: Megaphone },
 ] as const;
 
 export type AdminTab = (typeof tabs)[number]["id"];
@@ -85,6 +87,7 @@ export default function AdminPanel() {
         {tab === "foydalanuvchilar" && <UsersAdmin />}
         {tab === "sovgalar" && <RewardsAdmin />}
         {tab === "takliflar" && <SuggestionsAdmin />}
+        {tab === "yangiliklar" && <AnnouncementsAdmin />}
       </section>
     </div>
   );

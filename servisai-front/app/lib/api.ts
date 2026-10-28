@@ -370,3 +370,20 @@ export type AdminSuggestion = Suggestion & {
   user_telegram_username: string | null;
   replied_by: string | null;
 };
+
+/** Yangilik/e’lon — saytga kirganda chiqadigan oyna (bir vaqtda bittasi faol) */
+export type Announcement = {
+  id: number;
+  /** referral — “N ta do‘stingizni taklif qiling” (sovg‘a va progress bilan), custom — oddiy e’lon */
+  kind: "custom" | "referral";
+  title: string;
+  highlight: string;
+  subtitle: string;
+  text: string;
+  button_text: string;
+  button_url: string;
+  image_url: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};

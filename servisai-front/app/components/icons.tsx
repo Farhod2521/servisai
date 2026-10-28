@@ -371,3 +371,20 @@ export const GoogleLogo = (p: IconProps) => (
     <path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 2.1 7.1L5.7 10c.9-2.7 3.4-4.6 6.3-4.6z" />
   </svg>
 );
+export const Sun = (p: IconProps) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+  </Base>
+);
+export const Moon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+  </Base>
+);
+export const Megaphone = (p: IconProps) => (
+  <Base {...p}>
+    <path d="m3 11 18-5v12L3 14v-3Z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+  </Base>
+);

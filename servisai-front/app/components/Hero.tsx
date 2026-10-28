@@ -21,6 +21,8 @@ export default function Hero() {
       </div>
       {/* Mobil uchun matn o‘qilishi oson bo‘lsin */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-transparent xl:hidden" />
+      {/* Qorong‘i rejimda matn rasm ustida o‘qilishi uchun */}
+      <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0b1020] via-[#0b1020]/85 via-45% to-transparent to-75% dark:block" />
 
       <div className="relative mx-auto flex min-h-[460px] max-w-7xl items-center px-4 py-16 sm:px-6 md:min-h-[520px] lg:min-h-[560px] xl:aspect-[1859/846] xl:min-h-0 xl:py-0">
         <div className="max-w-xl">

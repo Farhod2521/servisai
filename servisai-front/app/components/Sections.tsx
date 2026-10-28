@@ -20,7 +20,7 @@ export function PromoBanner() {
             <h2 className="text-2xl font-bold leading-tight sm:text-3xl">
               Barcha premium servislar endi bir joyda!
             </h2>
-            <p className="mt-3 text-sm text-blue-100">
+            <p className="mt-3 text-sm text-white/80">
               Sizga kerak bo‘lgan AI, dizayn, video, kodlash va boshqa servislarni oson va tez xarid qiling.
             </p>
           </div>

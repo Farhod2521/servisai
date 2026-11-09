@@ -14,7 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -94,11 +94,34 @@ class Product(TimestampMixin, Base):
     # Servis sahifasidagi "Muhim ma’lumot" (qoidalar, kafolat shartlari)
     notes: Mapped[str] = mapped_column(Text, default="", server_default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # own — admin qo‘shgan; canboso — ta’minotchidan avtomatik (narx, nom va soni har sinxronlashda yangilanadi)
+    source: Mapped[str] = mapped_column(String(16), default="own", server_default="own")
+    # Ta’minotchidagi ID ("cb:123")
+    external_id: Mapped[str | None] = mapped_column(String(64), unique=True)
+    # Katalogdagi brend guruhi ("ChatGPT", "Claude"...)
+    brand: Mapped[str | None] = mapped_column(String(64), index=True)
+    # Ta’minotchi narxi (so‘mda, sinxronlash paytidagi kurs bo‘yicha)
+    supplier_price: Mapped[int | None] = mapped_column(Integer)
+    # need (email | accounts), fixed_qty, usd, warranty, type, raw (asl nom), gone (ro‘yxatdan chiqib ketgan)
+    supplier_meta: Mapped[dict] = mapped_column(JSONB, default=dict, server_default="{}")
 
     @property
     def instant_delivery(self) -> bool:
-        """Avtomatik rejimda soni = berilmagan elementlar soni, shuning uchun sotuvda bo‘lsa darhol beriladi."""
+        """Avtomatik rejimda soni = berilmagan elementlar soni, shuning uchun sotuvda bo‘lsa darhol beriladi.
+        Ta’minotchi mahsuloti ham (qo‘shimcha ma’lumot so‘ramaydigan tayyor akkaunt/kod) darhol beriladi."""
+        if self.delivery_mode == "supplier":
+            return not self.needs_input and (self.supplier_meta or {}).get("type") == "account"
         return self.delivery_mode == "auto"
+
+    @property
+    def needs_input(self) -> str | None:
+        """Xaridda mijozdan nima so‘raladi: email (slot — emailga taklif) yoki accounts (o‘z akkauntini yangilash)."""
+        return (self.supplier_meta or {}).get("need") if self.delivery_mode == "supplier" else None
+
+    @property
+    def fixed_quantity(self) -> int | None:
+        """Ta’minotchi bir martada faqat shuncha dona sotadi."""
+        return (self.supplier_meta or {}).get("fixed_qty") if self.delivery_mode == "supplier" else None
 
     # Ro‘yxat endpointlarida buyurtmalardan hisoblab qo‘yiladi (bazada ustun emas;
     # annotatsiyasiz, aks holda SQLAlchemy uni ustun deb tushunadi)
@@ -137,6 +160,10 @@ class Order(TimestampMixin, Base):
     delivery_info: Mapped[str | None] = mapped_column(Text)
     # Hisobdan to‘langan buyurtma bekor qilinsa, pul hisobga qaytariladi
     paid_from_balance: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    # Ta’minotchi mahsuloti uchun mijoz kiritgan email yoki akkauntlar (har qatorda bittadan)
+    customer_input: Mapped[str | None] = mapped_column(Text)
+    # Ta’minotchidagi buyurtma kodi
+    supplier_ref: Mapped[str | None] = mapped_column(String(64))
 
     user: Mapped[User] = relationship(back_populates="orders")
     events: Mapped[list["OrderEvent"]] = relationship(

@@ -21,8 +21,8 @@ STATUS_LABELS = {
 
 
 def duration_label(n: int, unit: str) -> str:
-    """3, "day" -> "3 kun"; 1, "month" -> "1 oy" """
-    return f"{n} kun" if unit == "day" else f"{n} oy"
+    """3, "day" -> "3 kun"; 1, "month" -> "1 oy"; "item" (kredit, kalit — muddatsiz) -> "1 dona" """
+    return f"{n} kun" if unit == "day" else f"{n} dona" if unit == "item" else f"{n} oy"
 
 
 def format_price(n: int) -> str:

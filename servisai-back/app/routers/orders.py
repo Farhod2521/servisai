@@ -15,6 +15,7 @@ from ..schemas import (
 )
 from ..shop import ShopError, place_order
 from ..stock import give_back, was_auto_delivered
+from ..supplier.fulfill import fulfill
 from ..wallet import change_balance
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -39,14 +40,25 @@ async def create_order(data: OrderCreate, user: CurrentUser, session: SessionDep
     delivery_time = product.delivery_time
     try:
         order = await place_order(
-            session, user, product, quantity=data.quantity, duration=data.duration_months, comment=data.comment
+            session,
+            user,
+            product,
+            quantity=data.quantity,
+            duration=data.duration_months,
+            comment=data.comment,
+            customer_input=data.customer_input,
         )
     except ShopError as e:
         raise HTTPException(e.status, e.message)
     await session.commit()
     order = await _get_order(session, order.id)
+    # Ta’minotchi mahsuloti: pul yechilgach darhol sotib olinadi (rad etilsa pul qaytariladi)
+    if await fulfill(session, order) is not None:
+        order = await _get_order(session, order.id)
     user = await session.get(User, user.id)
-    background.add_task(notify_order_created, order, user, delivery_time)
+    # Ta’minotchi rad etgan (bekor qilingan, pul qaytarilgan) buyurtma haqida admin alohida xabar oladi
+    if order.status != OrderStatus.cancelled:
+        background.add_task(notify_order_created, order, user, delivery_time)
     return order
 
 

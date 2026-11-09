@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     topup_max_amount: int = 50_000_000
     media_dir: str = "media"
 
+    # Ta’minotchi (canboso.com) — mahsulotlar shu yerdan olinadi va xarid avtomatik bajariladi.
+    # Kalit bo‘sh bo‘lsa — sinxronlash o‘chiq, saytda faqat o‘zimiz qo‘shgan mahsulotlar.
+    canboso_api_key: str = ""
+    canboso_api_url: str = "https://canboso.com/api/v2/telegram-buyer"
+    # 1 USD necha so‘m (0 — Markaziy bank kursi avtomatik olinadi)
+    usd_to_uzs: float = 0.0
+    # Katalog necha soniyada bir yangilanadi
+    supplier_sync_seconds: int = 180
+
     admin_emails: str = ""
     admin_telegram_ids: str = ""
 

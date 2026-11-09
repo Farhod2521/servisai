@@ -184,7 +184,7 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                 <div>
                   {p.old_price && <p className="text-sm text-slate-400 line-through decoration-rose-400">{formatPrice(p.old_price)} so‘m</p>}
                   <p className="text-[2rem] font-extrabold leading-tight tracking-tight">{formatPrice(p.price)} so‘m</p>
-                  <p className="text-sm text-slate-500">{periodText(p.durations[0], p.duration_unit)} muddat uchun</p>
+                  <p className="text-sm text-slate-500">{periodText(p.durations[0], p.duration_unit)}</p>
                 </div>
                 {discount > 0 && (
                   <span className="rounded-xl bg-rose-500 px-2.5 py-1 text-sm font-extrabold text-white shadow-md shadow-rose-500/30">−{discount}%</span>
@@ -246,7 +246,15 @@ export default function ProductDetail({ id, children }: { id: string; children: 
                 </>
               ) : (
                 <div className="border-t border-slate-100 pt-1 mt-5">
-                  <BuyButton productId={p.id} duration={p.durations[0]} price={p.price} stock={p.stock} deliveryTime={p.delivery_time} />
+                  <BuyButton
+                    productId={p.id}
+                    duration={p.durations[0]}
+                    price={p.price}
+                    stock={p.stock}
+                    deliveryTime={p.delivery_time}
+                    needsInput={p.needs_input}
+                    fixedQuantity={p.fixed_quantity}
+                  />
                   <p className="mt-3 text-center text-xs text-slate-500">To‘lov hisobingizdan yechiladi · Hisobni karta orqali to‘ldirasiz</p>
                 </div>
               )}

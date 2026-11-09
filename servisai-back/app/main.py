@@ -1,12 +1,29 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .logos import PUBLIC_FOLDERS, media_dir
-from .routers import admin, announcements, auth, orders, products, referrals, suggestions, users, wallet
+from .routers import admin, announcements, auth, orders, products, referrals, suggestions, supplier, users, wallet
+from .supplier import client as supplier_client
+from .supplier.sync import run_forever as supplier_sync_forever
 
-app = FastAPI(title="servisai.uz API", version="1.0.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Ta’minotchi katalogi fonda yangilanib turadi (kalit .env da bo‘lsa)
+    task = asyncio.create_task(supplier_sync_forever(settings.supplier_sync_seconds)) if supplier_client.enabled() else None
+    yield
+    if task:
+        task.cancel()
+
+
+app = FastAPI(
+    title="servisai.uz API", version="1.0.0", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +47,7 @@ api.include_router(suggestions.router)
 api.include_router(suggestions.admin_router)
 api.include_router(announcements.router)
 api.include_router(announcements.admin_router)
+api.include_router(supplier.router)
 
 
 @api.get("/health", tags=["system"])

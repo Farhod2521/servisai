@@ -3,6 +3,7 @@
 Commit va xabarnomalar chaqiruvchi tomonda qilinadi.
 """
 
+import re
 from datetime import datetime, timezone
 
 from sqlalchemy import select
@@ -12,6 +13,9 @@ from .models import DeliveryItem, Order, OrderEvent, OrderStatus, Product, Trans
 from .notify import format_price
 from .stock import take
 from .wallet import InsufficientFunds, change_balance
+
+
+_EMAIL = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$")
 
 
 class ShopError(Exception):
@@ -25,6 +29,27 @@ class ShopError(Exception):
         self.need_topup = need_topup
 
 
+def clean_customer_input(product: Product, quantity: int, value: str | None) -> str | None:
+    """Ta’minotchi mahsuloti talab qilgan email/akkauntlarni tekshiradi (ServesAI botidagi qoidalar)."""
+    fixed = product.fixed_quantity
+    if fixed and quantity != fixed:
+        raise ShopError(422, f"Bu mahsulotdan bir martada faqat {fixed} ta olish mumkin")
+    need = product.needs_input
+    if need == "email":
+        email = (value or "").strip()
+        if not _EMAIL.match(email):
+            raise ShopError(422, "Obuna biriktiriladigan to‘g‘ri email manzilni kiriting")
+        return email
+    if need == "accounts":
+        rows = [r.strip() for r in (value or "").splitlines() if r.strip()]
+        if len(rows) != quantity:
+            raise ShopError(422, f"{quantity} ta akkaunt ma’lumotini kiriting (har qatorga bittadan)")
+        if any(len(r) < 3 or len(r) > 200 for r in rows):
+            raise ShopError(422, "Akkaunt ma’lumoti noto‘g‘ri")
+        return "\n".join(rows)
+    return None
+
+
 async def place_order(
     session: AsyncSession,
     user: User,
@@ -34,6 +59,7 @@ async def place_order(
     duration: int | None = None,
     comment: str | None = None,
     gift_note: str | None = None,
+    customer_input: str | None = None,
 ) -> Order:
     """Buyurtma yaratadi va to‘lovni hisobdan yechadi.
 
@@ -46,6 +72,7 @@ async def place_order(
     duration = duration or product.durations[0]
     if duration not in product.durations:
         raise ShopError(422, "Bu muddat mavjud emas")
+    customer_input = clean_customer_input(product, quantity, customer_input) if not gift else None
 
     in_stock = await take(session, product, quantity)
     if not in_stock and not gift:
@@ -56,7 +83,7 @@ async def place_order(
 
     # Avtomatik mahsulot: har bir dona uchun ro‘yxatdan alohida (hali berilmagan) element olinadi
     items: list[DeliveryItem] = []
-    if product.instant_delivery and in_stock:
+    if product.delivery_mode == "auto" and in_stock:
         items = list(
             (
                 await session.scalars(
@@ -89,6 +116,7 @@ async def place_order(
         status=OrderStatus.completed if instant else OrderStatus.paid,
         delivery_info="\n".join(i.content for i in items) if instant else None,
         paid_from_balance=not gift,
+        customer_input=customer_input,
         events=[
             OrderEvent(status=OrderStatus.pending, note="Buyurtma yaratildi" + (f" ({quantity} ta)" if quantity > 1 else "")),
             OrderEvent(status=OrderStatus.paid, note=paid_note),

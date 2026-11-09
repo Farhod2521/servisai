@@ -271,10 +271,16 @@ async def _get(session: SessionDep, product_id: str) -> Product:
     return product
 
 
+SUPPLIER_EDITABLE = {"is_active", "sort_order", "badge", "old_price", "sold_base", "notes"}
+
+
 @router.patch("/products/{product_id}", response_model=AdminProductOut)
 async def update_product(product_id: str, data: ProductUpdate, _: AdminUser, session: SessionDep):
     product = await _get(session, product_id)
     changes = data.model_dump(exclude_unset=True)
+    if product.source == "canboso":
+        # Nom, narx, soni va boshqalar har sinxronlashda ta’minotchidan yangilanadi — faqat saytdagi ko‘rinishi o‘zgaradi
+        changes = {k: v for k, v in changes.items() if k in SUPPLIER_EDITABLE}
     # badge va old_price ni null qilib olib tashlash mumkin, qolganlari majburiy
     for field in (
         "name", "price", "durations", "category", "features", "sort_order", "is_active", "description",

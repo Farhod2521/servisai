@@ -174,6 +174,10 @@ export default function ProductForm({
     delivery_time: deliveryTime,
     instant_delivery: deliveryMode === "auto",
     notes,
+    source: product?.source ?? "own",
+    brand: product?.brand ?? null,
+    needs_input: product?.needs_input ?? null,
+    fixed_quantity: product?.fixed_quantity ?? null,
   });
   const soldOut = isSoldOut(preview);
   const previewStock = stockLabel(preview);
@@ -197,6 +201,19 @@ export default function ProductForm({
 
         <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_260px]">
           <div className="space-y-5">
+            {product?.source === "canboso" && (
+              <p className="rounded-2xl bg-sky-50 px-4 py-3 text-sm leading-relaxed text-sky-900 ring-1 ring-sky-100">
+                <b>Ta’minotchi mahsuloti.</b> Nomi, narxi, soni va tavsifi har 3 daqiqada ta’minotchidan avtomatik yangilanadi, xarid
+                ham avtomatik bajariladi. Bu yerda faqat <b>faolligi, tartibi, belgisi, eski narxi, sotilganlar soni, muhim ma’lumot</b> va
+                logosi saqlanadi.
+                {product.supplier_price !== null && (
+                  <span className="mt-1 block">
+                    Ta’minotchi narxi: <b>{product.supplier_price.toLocaleString("ru-RU")} so‘m</b> · foyda:{" "}
+                    <b>{(product.price - product.supplier_price).toLocaleString("ru-RU")} so‘m</b>
+                  </span>
+                )}
+              </p>
+            )}
             <Field label="Nomi" required>
               <input value={name} onChange={(e) => setName(e.target.value)} maxLength={255} placeholder="Masalan: ChatGPT Plus" className={inputCls} autoFocus />
             </Field>

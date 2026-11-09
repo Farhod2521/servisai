@@ -19,6 +19,8 @@ export default function BuyButton({
   price,
   stock,
   deliveryTime,
+  needsInput = null,
+  fixedQuantity = null,
 }: {
   productId: string;
   duration: number;
@@ -26,9 +28,14 @@ export default function BuyButton({
   /** null — cheklanmagan */
   stock: number | null;
   deliveryTime: string;
+  /** Ta’minotchi mahsuloti: email (emailga taklif) yoki accounts (o‘z akkauntini yangilash) so‘raladi */
+  needsInput?: "email" | "accounts" | null;
+  /** Bir martada faqat shuncha dona olinadi */
+  fixedQuantity?: number | null;
 }) {
   const { user, openLogin, refreshUser } = useAuth();
-  const [qtyText, setQtyText] = useState("1");
+  const [qtyText, setQtyText] = useState(String(fixedQuantity ?? 1));
+  const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ text: string; topUp: boolean } | null>(null);
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -47,6 +54,15 @@ export default function BuyButton({
         ? "Sonini kiriting"
         : null;
   const total = price * Math.max(qty, 1);
+  const inputRows = input.split("\n").filter((l) => l.trim()).length;
+  const inputProblem =
+    needsInput === "email"
+      ? /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(input.trim())
+        ? null
+        : "Obuna biriktiriladigan email manzilni kiriting"
+      : needsInput === "accounts" && inputRows !== qty
+        ? `${qty} ta akkaunt ma’lumotini kiriting (har qatorga bittadan)`
+        : null;
 
   const setQty = (n: number) => {
     setError(null);
@@ -60,7 +76,7 @@ export default function BuyButton({
       setOrder(
         await api<OrderDetail>("/orders", {
           method: "POST",
-          json: { product_id: productId, duration_months: duration, quantity },
+          json: { product_id: productId, duration_months: duration, quantity, customer_input: needsInput ? input.trim() : null },
         }),
       );
       refreshUser();
@@ -73,12 +89,36 @@ export default function BuyButton({
 
   const buy = () => {
     if (qtyProblem) return;
+    if (inputProblem) return setError({ text: inputProblem, topUp: false });
     // Kirmagan foydalanuvchi avval tizimga kiradi, so‘ng buyurtma avtomatik yaratiladi
     if (!user) openLogin({ onSuccess: () => createOrder(qty) });
     else createOrder(qty);
   };
 
   if (order) {
+    // Ta’minotchi bera olmadi: buyurtma bekor, pul hisobga qaytarilgan
+    if (order.status === "cancelled") {
+      return (
+        <div className="mt-5 rounded-2xl bg-rose-50 p-4 text-sm text-rose-900 ring-1 ring-rose-100">
+          <p className="font-semibold">😔 Buyurtma {order.number} bajarilmadi</p>
+          <p className="mt-1 text-rose-800/80">{order.events.at(-1)?.note ?? "Mablag‘ hisobingizga qaytarildi."}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button onClick={() => setOrder(null)} className="rounded-lg bg-rose-600 px-4 py-2 font-semibold text-white hover:bg-rose-700">
+              Boshqasini tanlash
+            </button>
+            <a
+              href={SUPPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 font-semibold text-rose-700 ring-1 ring-rose-200"
+            >
+              <Send className="size-4" /> Operatorga yozish
+            </a>
+          </div>
+        </div>
+      );
+    }
+
     // Avtomatik mahsulot: buyurtma darhol bajariladi va ma’lumot shu yerda beriladi
     if (order.status === "completed" && order.delivery_info) {
       return (
@@ -141,8 +181,50 @@ export default function BuyButton({
 
   return (
     <>
+      {needsInput && (
+        <label className="mt-5 block">
+          <span className="text-sm font-semibold">
+            {needsInput === "email" ? "Obuna biriktiriladigan email" : `Akkaunt ma’lumoti (${qty} ta, har qatorga bittadan)`}
+          </span>
+          {needsInput === "email" ? (
+            <input
+              type="email"
+              value={input}
+              onChange={(e) => {
+                setError(null);
+                setInput(e.target.value);
+              }}
+              placeholder="email@gmail.com"
+              autoComplete="email"
+              className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
+            />
+          ) : (
+            <textarea
+              value={input}
+              onChange={(e) => {
+                setError(null);
+                setInput(e.target.value);
+              }}
+              rows={Math.min(Math.max(qty, 2), 6)}
+              placeholder="email@gmail.com:parol"
+              className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-mono text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
+            />
+          )}
+          <span className="mt-1 block text-xs text-slate-500">
+            {needsInput === "email"
+              ? "Shu emailga obuna taklifi yuboriladi."
+              : "Obuna shu akkaunt(lar)ga faollashtiriladi. Ma’lumotlar faqat xarid uchun ishlatiladi."}
+          </span>
+        </label>
+      )}
+
       {/* Soni va jami summa */}
       <div className="mt-5 flex items-end justify-between gap-3">
+        {fixedQuantity ? (
+          <p className="text-sm text-slate-500">
+            Bir martada <b className="text-slate-800">{fixedQuantity} ta</b>
+          </p>
+        ) : (
         <div>
           <p className="text-sm font-semibold">Soni</p>
           <div className={`mt-1.5 flex w-fit items-center overflow-hidden rounded-xl ring-1 ${qtyProblem && qty > 0 ? "ring-rose-300" : "ring-slate-200"}`}>
@@ -165,6 +247,7 @@ export default function BuyButton({
             </button>
           </div>
         </div>
+        )}
         <div className="text-right">
           <p className="text-sm text-slate-500">{qty > 1 ? `${qty} × ${formatPrice(price)} so‘m` : "Jami"}</p>
           <p className="whitespace-nowrap text-xl font-extrabold sm:text-2xl">{formatPrice(total)} so‘m</p>

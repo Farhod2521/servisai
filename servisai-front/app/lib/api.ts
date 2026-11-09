@@ -35,6 +35,8 @@ export type Order = {
   comment: string | null;
   delivery_info: string | null;
   paid_from_balance: boolean;
+  /** Ta’minotchi mahsuloti uchun kiritilgan email yoki akkauntlar */
+  customer_input: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -84,7 +86,8 @@ export type Transaction = {
   created_at: string;
 };
 
-export type DurationUnit = "day" | "month";
+/** item — muddatsiz (kredit, kalit): "1 dona" */
+export type DurationUnit = "day" | "month" | "item";
 
 export type ProductCategory = "chat" | "design" | "code" | "office" | "social" | "other";
 export type ProductBadge = "popular" | "sale" | "new" | "api";
@@ -113,9 +116,18 @@ export type Product = {
   instant_delivery: boolean;
   /** "Muhim ma’lumot": qoidalar, kafolat shartlari */
   notes: string;
+  /** own — admin qo‘shgan; canboso — ta’minotchidan avtomatik */
+  source: "own" | "canboso";
+  /** Katalogdagi brend guruhi ("ChatGPT", "Claude"...) */
+  brand: string | null;
+  /** Xaridda so‘raladi: email (emailga taklif) yoki accounts (o‘z akkauntingizni yangilash) */
+  needs_input: "email" | "accounts" | null;
+  /** Bir martada faqat shuncha dona olinadi */
+  fixed_quantity: number | null;
 };
 
-export type DeliveryMode = "auto" | "manual";
+/** supplier — ta’minotchidan avtomatik sotib olinadi (faqat sinxronlash qo‘yadi) */
+export type DeliveryMode = "auto" | "manual" | "supplier";
 
 export type AdminProduct = Product & {
   is_active: boolean;
@@ -126,6 +138,9 @@ export type AdminProduct = Product & {
   delivery_mode: DeliveryMode;
   /** Boshlang‘ich "sotib olganlar" soni (sold_count = sold_base + haqiqiy xaridlar) */
   sold_base: number;
+  external_id: string | null;
+  /** Ta’minotchi narxi (so‘mda) */
+  supplier_price: number | null;
 };
 
 export type DeliveryItem = {
@@ -140,7 +155,12 @@ export type DeliveryItem = {
 };
 
 /** Yaratish/tahrirlash so‘rovi (id faqat yaratishda yuboriladi) */
-export type ProductInput = Omit<AdminProduct, "id" | "created_at" | "updated_at" | "sold_count" | "instant_delivery" | "logo_url"> & { id?: string };
+export type ProductInput = Omit<
+  AdminProduct,
+  | "id" | "created_at" | "updated_at" | "sold_count" | "instant_delivery" | "logo_url"
+  // Ta’minotchi maydonlarini faqat sinxronlash yozadi
+  | "source" | "brand" | "needs_input" | "fixed_quantity" | "external_id" | "supplier_price"
+> & { id?: string };
 
 export type AdminStats = {
   users_total: number;

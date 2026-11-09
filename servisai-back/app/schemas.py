@@ -90,10 +90,20 @@ class ProductOut(ORM):
     # Xariddan so‘ng darhol beriladimi (avtomatik matnning o‘zi ommaga ko‘rsatilmaydi)
     instant_delivery: bool
     notes: str
+    # own | canboso (ta’minotchi)
+    source: str
+    brand: str | None
+    # Xaridda so‘raladigan ma’lumot: email | accounts | None
+    needs_input: str | None
+    # Bir martada faqat shuncha dona olinadi (None — erkin)
+    fixed_quantity: int | None
 
 
 class AdminProductOut(ProductOut):
     delivery_mode: str
+    external_id: str | None
+    # Ta’minotchi narxi (so‘mda) — foyda = price - supplier_price
+    supplier_price: int | None
     # Boshlang‘ich son (sold_count = sold_base + haqiqiy xaridlar)
     sold_base: int
     is_active: bool
@@ -242,6 +252,8 @@ class OrderCreate(BaseModel):
     duration_months: int | None = None
     quantity: int = Field(default=1, ge=1, le=MAX_ORDER_QUANTITY)
     comment: str | None = Field(default=None, max_length=1000)
+    # Ta’minotchi mahsuloti so‘ragan email yoki akkauntlar (har qatorda bittadan)
+    customer_input: str | None = Field(default=None, max_length=5000)
 
 
 class OrderEventOut(ORM):
@@ -265,6 +277,7 @@ class OrderOut(ORM):
     comment: str | None
     delivery_info: str | None
     paid_from_balance: bool
+    customer_input: str | None
     created_at: datetime
     updated_at: datetime
 

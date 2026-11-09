@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import { Cart, ChevronDown, ChevronRight, Grid, Heart, ListIcon, Star } from "../components/icons";
 import type { ProductCategory } from "../lib/api";
 import { useProducts } from "../lib/products";
-import { badgeStyles, bannerLogos, catalogCategories, type CatalogProduct, discountPercent, durationText, formatCount, formatPrice, isSoldOut, productTypes, sellers, stockLabel, toCatalogProduct } from "./catalog-data";
+import { badgeStyles, bannerLogos, brandLogo, catalogCategories, type CatalogProduct, discountPercent, durationText, formatCount, formatPrice, isSoldOut, productTypes, sellers, stockLabel, toCatalogProduct } from "./catalog-data";
 
 const sortOptions = [
   { id: "popular", label: "Ommabop" },
@@ -19,6 +19,7 @@ export default function Catalog() {
   const { products: apiProducts, error, loading } = useProducts();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<ProductCategory | "all">("all");
+  const [brand, setBrand] = useState<string | null>(null);
   const [sort, setSort] = useState<SortId>("popular");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -32,15 +33,33 @@ export default function Catalog() {
     return counts;
   }, [products]);
 
+  // Ta’minotchi brendlari (tartib — API tartibi, botdagidek): logo, tariflar soni, eng arzon narx
+  const brands = useMemo(() => {
+    const map = new Map<string, { name: string; logoUrl: string | null; count: number; inStock: number; minPrice: number }>();
+    for (const p of products) {
+      if (!p.brand || (category !== "all" && p.category !== category)) continue;
+      const b = map.get(p.brand) ?? { name: p.brand, logoUrl: p.logo_url, count: 0, inStock: 0, minPrice: Infinity };
+      b.count += 1;
+      if (!isSoldOut(p)) {
+        b.inStock += 1;
+        b.minPrice = Math.min(b.minPrice, p.price);
+      }
+      map.set(p.brand, b);
+    }
+    return [...map.values()];
+  }, [products, category]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = products.filter(
       (p) =>
+        (!brand || p.brand === brand) &&
         (category === "all" || p.category === category) &&
         (!q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)),
     );
     const sorters: Record<SortId, ((a: CatalogProduct, b: CatalogProduct) => number) | null> = {
-      popular: null,
+      // Bitta brend tanlanganda tariflar arzonidan qimmatiga
+      popular: brand ? (a, b) => a.price - b.price : null,
       cheap: (a, b) => a.price - b.price,
       expensive: (a, b) => b.price - a.price,
     };
@@ -48,11 +67,12 @@ export default function Catalog() {
     const sorted = sorter ? list.sort(sorter) : list;
     // Tugaganlar har doim oxirida (qolganlarning tartibi saqlanadi)
     return [...sorted.filter((p) => !isSoldOut(p)), ...sorted.filter(isSoldOut)];
-  }, [products, query, category, sort]);
+  }, [products, query, category, sort, brand]);
 
   const resetFilters = () => {
     setQuery("");
     setCategory("all");
+    setBrand(null);
   };
 
   const toggleFavorite = (id: string) =>
@@ -82,7 +102,7 @@ export default function Catalog() {
               <span>Servislar</span>
             </nav>
             <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
-              {category === "all" ? "Barcha servislar" : activeCategory.label}
+              {brand ?? (category === "all" ? "Barcha servislar" : activeCategory.label)}
             </h1>
             <p className="mt-3 max-w-xl text-sm text-slate-600 sm:text-base lg:max-w-md">
               Zamonaviy AI va premium servislarni bir joyda. Tez, ishonchli va arzon narxda.
@@ -95,7 +115,10 @@ export default function Catalog() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => setCategory(c.id)}
+                  onClick={() => {
+                    setCategory(c.id);
+                    setBrand(null);
+                  }}
                   className={`flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition ${
                     active
                       ? "bg-brand text-white shadow-lg shadow-blue-600/25"
@@ -110,6 +133,49 @@ export default function Catalog() {
             })}
           </div>
         </section>
+
+        {/* Brendlar: botdagi «Obunani tanlang» tugmalari kabi */}
+        {brands.length > 0 && (
+          <section className="mt-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-bold">Obunani tanlang 👇</h2>
+              {brand && (
+                <button onClick={() => setBrand(null)} className="text-sm font-semibold text-brand hover:underline">
+                  Barcha brendlar
+                </button>
+              )}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+              {brands.map((b) => {
+                const active = brand === b.name;
+                const empty = b.inStock === 0;
+                return (
+                  <button
+                    key={b.name}
+                    title={`${b.name}: ${b.count} ta tarif`}
+                    onClick={() => setBrand(active ? null : b.name)}
+                    aria-pressed={active}
+                    className={`flex min-w-0 items-center gap-2.5 rounded-2xl p-2.5 text-left ring-1 transition ${
+                      active
+                        ? "bg-brand-soft ring-2 ring-brand"
+                        : empty
+                          ? "bg-white opacity-60 ring-slate-100 grayscale hover:opacity-100"
+                          : "bg-white shadow-sm ring-slate-100 hover:-translate-y-0.5 hover:ring-brand/40"
+                    }`}
+                  >
+                    <span className="size-10 shrink-0 text-xs">{brandLogo(b.name, b.logoUrl)}</span>
+                    <span className="min-w-0">
+                      <span className={`block truncate text-sm font-bold ${active ? "text-brand" : ""}`}>{b.name}</span>
+                      <span className="block truncate text-[11px] text-slate-500">
+                        {empty ? "Tugagan" : `${formatPrice(b.minPrice)} so‘mdan`}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Toolbar */}
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -203,7 +269,7 @@ function ProductCard({
 }) {
   const discount = discountPercent(p);
   const badge = p.badge && badgeStyles[p.badge];
-  const durationLabel = `${p.durations.join("/")} ${p.duration_unit === "day" ? "kun" : "oy"}`;
+  const durationLabel = durationText(p.durations[0], p.duration_unit);
   const sellerLabel = sellers.find((s) => s.id === p.seller)?.short;
   const typeLabel = productTypes.find((t) => t.id === p.type)?.short;
   const soldOut = isSoldOut(p);

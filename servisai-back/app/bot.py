@@ -232,7 +232,10 @@ def product_cb(prefix: str, product_id: str, qty: int | None = None) -> str | No
 async def buy_list(callback: CallbackQuery) -> None:
     async with SessionLocal() as session:
         products = (
-            await session.scalars(select(Product).where(Product.is_active).order_by(Product.sort_order, Product.name))
+            await session.scalars(
+                # Ta’minotchi katalogi (200+ tarif) saytda; botda o‘zimiz qo‘shgan mahsulotlar
+                select(Product).where(Product.is_active, Product.source == "own").order_by(Product.sort_order, Product.name)
+            )
         ).all()
     rows = []
     for p in products:

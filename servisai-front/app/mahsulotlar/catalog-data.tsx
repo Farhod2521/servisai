@@ -59,10 +59,11 @@ export type CatalogProduct = Product & {
   seller?: Seller;
 };
 
-/** 3, "day" -> "3 kun"; 1, "month" -> "1 oy" */
-export const durationText = (n: number, unit: string) => `${n} ${unit === "day" ? "kun" : "oy"}`;
-/** 1, "month" -> "1 oylik"; 1, "day" -> "1 kunlik" */
-export const periodText = (n: number, unit: string) => `${n} ${unit === "day" ? "kunlik" : "oylik"}`;
+/** 3, "day" -> "3 kun"; 1, "month" -> "1 oy"; 1, "item" -> "1 dona" (kredit, kalit) */
+export const durationText = (n: number, unit: string) => `${n} ${unit === "day" ? "kun" : unit === "item" ? "dona" : "oy"}`;
+/** 1, "month" -> "1 oylik muddat uchun"; muddatsiz -> "Bir martalik xarid" */
+export const periodText = (n: number, unit: string) =>
+  unit === "item" ? "Bir martalik xarid" : `${n} ${unit === "day" ? "kunlik" : "oylik"} muddat uchun`;
 
 /** 1234567 -> "1 234 567" (toLocaleString server/brauzerda turli bo‘shliq qaytarishi mumkin) */
 export const formatPrice = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -154,6 +155,31 @@ const extras: Record<string, Extras> = {
 /** Build vaqtida oldindan tayyorlanadigan servis sahifalari */
 export const knownProductIds = Object.keys(extras);
 
+/** Ta’minotchi brendlari: chizilgan logosi bor brendlar */
+const brandLogos: Record<string, ReactNode> = {
+  ChatGPT: logos.openai,
+  Codex: logos.codex,
+  Claude: logos.claude,
+  Gemini: logos.gemini,
+  CapCut: logos.capcut,
+};
+
+/** Brend ikonkasi (sayt ikonkasidan avtomatik olingan) — oq fonda, chetlari bilan */
+function BrandIcon({ src, name }: { src: string; name: string }) {
+  return (
+    <div className={`${tile} overflow-hidden bg-white p-[18%] ring-1 ring-slate-100`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- kichik ikonka */}
+      <img src={src} alt={name} className="size-full object-contain" loading="lazy" />
+    </div>
+  );
+}
+
+/** Brend logotipi (katalogdagi brend tugmalari uchun) */
+export function brandLogo(brand: string, logoUrl: string | null): ReactNode {
+  if (brandLogos[brand]) return brandLogos[brand];
+  return logoUrl ? <BrandIcon src={logoUrl} name={brand} /> : <FallbackLogo id={brand} name={brand} />;
+}
+
 /** Admin yuklagan logo (rasm kvadratga sig‘diriladi) */
 function UploadedLogo({ src, name }: { src: string; name: string }) {
   return (
@@ -165,6 +191,10 @@ function UploadedLogo({ src, name }: { src: string; name: string }) {
 }
 
 export function toCatalogProduct(p: Product): CatalogProduct {
+  // Ta’minotchi mahsuloti: admin yuklagan logo bo‘lmasa — brend logotipi
+  if (p.brand && (!p.logo_url || p.logo_url.startsWith("/api/media/logos/brand-"))) {
+    return { ...p, logo: brandLogo(p.brand, p.logo_url), type: p.badge === "api" ? "api" : undefined };
+  }
   const base = { ...p, ...(extras[p.id] ?? { logo: <FallbackLogo id={p.id} name={p.name} /> }) };
   // Yuklangan logo bo‘lsa — u ustun; aks holda chizilgan yoki harfli standart logo
   return p.logo_url ? { ...base, logo: <UploadedLogo src={p.logo_url} name={p.name} /> } : base;

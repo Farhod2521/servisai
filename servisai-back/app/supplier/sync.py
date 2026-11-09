@@ -1,6 +1,6 @@
 """Ta’minotchi katalogini saytga yozish (har SUPPLIER_SYNC_SECONDS da fonda).
 
-Faqat do‘kon brendlari (client.BASE_BRANDS) va taqiqlanmagan mahsulotlar qo‘shiladi. Har sinxronlashda nom, tavsif,
+Taqiqlanmagan HAMMA mahsulotlar qo‘shiladi: avval botdagi asosiy brendlar (client.BASE_BRANDS), keyin qolganlari. Har sinxronlashda nom, tavsif,
 narx (Markaziy bank kursi + botdagi «aqlli narx») va soni yangilanadi. Admin o‘zgartirgan faollik (yashirish),
 tartib, belgi va yuklagan logo saqlanib qoladi. Ro‘yxatdan chiqib ketgan mahsulot o‘chirilmaydi — yashiriladi.
 """
@@ -58,6 +58,13 @@ def duration_of(name: str) -> tuple[int, str]:
     }[unit]
 
 
+def brand_order(brand: str) -> int:
+    """Botdagi asosiy brendlar oldinda (o‘sha tartibda), qolganlari ulardan keyin; o‘zimizning mahsulotlar (0…) eng oldinda."""
+    if brand in client.BASE_BRANDS:
+        return 1000 + client.BASE_BRANDS.index(brand) * 10
+    return 2000
+
+
 def product_id(external_id: str) -> str:
     """"cb:Ab_12" → "cb-ab-12" (sahifa manzili uchun)."""
     return "cb-" + re.sub(r"[^a-z0-9]+", "-", external_id.removeprefix("cb:").lower()).strip("-")[:56]
@@ -104,7 +111,7 @@ async def sync(session: AsyncSession) -> SyncResult:
             result.skipped += 1
             result.errors.append(str(ex))
             continue
-        if it["blocked"] or it["brand"] not in client.BASE_BRANDS or it["external_id"] in seen:
+        if it["blocked"] or it["external_id"] in seen:
             result.skipped += 1
             continue
         seen.add(it["external_id"])
@@ -142,7 +149,7 @@ async def sync(session: AsyncSession) -> SyncResult:
                     is_active=True,
                     badge="api" if is_api(it["brand"], it["name_en"]) else None,
                     # Brendlar tartibi botdagidek; o‘zimiz qo‘shgan mahsulotlar (0…) oldinda turadi
-                    sort_order=1000 + client.BASE_BRANDS.index(it["brand"]) * 10,
+                    sort_order=brand_order(it["brand"]),
                     logo_url=logos[it["brand"]],
                     old_price=None,
                     sold_base=0,

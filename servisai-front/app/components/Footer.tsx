@@ -1,7 +1,7 @@
 import { Brand } from "./Header";
 import { Clock, Instagram, Mail, Send, Youtube } from "./icons";
 
-const ADMIN_TELEGRAM = "https://t.me/fen1xmedia";
+const ADMIN_TELEGRAM = "https://t.me/Servisaiuz";
 
 const categories = ["AI Chatbotlar", "Dizayn & Video", "Kodlash & Dev", "Ofis & Ta’lim", "Boshqa servislar"];
 const usefulLinks = [

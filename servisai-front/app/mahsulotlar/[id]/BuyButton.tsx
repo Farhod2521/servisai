@@ -9,7 +9,7 @@ import { formatPrice } from "../catalog-data";
 import { api, ApiError, type OrderDetail } from "../../lib/api";
 
 // To‘lov tizimi ulanmaguncha to‘lov operator orqali Telegramda amalga oshiriladi
-const SUPPORT_URL = "https://t.me/fen1xmedia";
+const SUPPORT_URL = "https://t.me/Servisaiuz";
 // Backenddagi MAX_ORDER_QUANTITY bilan bir xil
 const MAX_QUANTITY = 100;
 

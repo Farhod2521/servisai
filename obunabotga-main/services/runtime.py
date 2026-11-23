@@ -164,7 +164,7 @@ def autoconfirm_enabled() -> bool:
     return _cache.get("pay_auto", "1") != "0"
 
 
-DEFAULT_SUPPORT = "fen1xmedia"
+DEFAULT_SUPPORT = "Servisaiuz"
 
 
 def support_username() -> str:

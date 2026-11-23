@@ -315,11 +315,11 @@ async def main() -> None:
         out = await feed(dp, bot, _msg(5, label))
         check(any(expect in x for x in out), f"menyu: «{label}» → «{expect}»")
 
-    # Yordam: @fen1xmedia havolasi
+    # Yordam: @Servisaiuz havolasi
     await feed(dp, bot, _msg(5, "Yordam"))
     sent = [m for m in CALLS if type(m).__name__ == "SendMessage"][-1]
-    check(any(getattr(b, "url", "") == "https://t.me/fen1xmedia" for r in sent.reply_markup.inline_keyboard for b in r),
-          "«Yordam» → https://t.me/fen1xmedia")
+    check(any(getattr(b, "url", "") == "https://t.me/Servisaiuz" for r in sent.reply_markup.inline_keyboard for b in r),
+          "«Yordam» → https://t.me/Servisaiuz")
 
     # 3) obunalar ro'yxati: faqat 10 ta brend; zaxirasi bor — yashil, yo'q — qizil
     from handlers.shop import SERVICES, services_kb, availability

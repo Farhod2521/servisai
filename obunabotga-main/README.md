@@ -18,7 +18,7 @@ Pastki menyu:
 |---|---|
 | **Obunalar** | **Hisobni to'ldirish** |
 | **Buyurtmalarim** | **Profil** (ID, balans, til: o'zbek/rus) |
-| **Qo'llanma** | **Yordam** (→ @fen1xmedia) |
+| **Qo'llanma** | **Yordam** (→ @Servisaiuz) |
 
 ## Admin panel
 

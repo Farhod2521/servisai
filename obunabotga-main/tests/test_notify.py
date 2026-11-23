@@ -215,13 +215,13 @@ async def main() -> None:
     txt = order_success_text("uz", o, 1000, {}, {11: "24 soat ichida kirishda muammo chiqsa «Yordam»ga yozing"})
     check("🛡" in txt and "24 soat ichida" in txt and "«Yordam» bo'limi" in txt, "chatdagi buyurtma xabarida kafolat matni va murojaat yo'li")
     check("🛡" not in order_success_text("uz", o, 1000, {}, {}), "kafolat yo'q bo'lsa — blok chiqmaydi")
-    check(runtime.support_username() == "fen1xmedia", "Yordam markazi: @fen1xmedia (standart)")
-    check("@fen1xmedia ga yozing" in order_success_text("uz", o, 1000, {11: "1) a\n2) b"}, {}, "fen1xmedia"),
-          "xariddan keyingi xabarda: qo'llanmaga tushunmasangiz @fen1xmedia ga yozing")
+    check(runtime.support_username() == "Servisaiuz", "Yordam markazi: @Servisaiuz (standart)")
+    check("@Servisaiuz ga yozing" in order_success_text("uz", o, 1000, {11: "1) a\n2) b"}, {}, "Servisaiuz"),
+          "xariddan keyingi xabarda: qo'llanmaga tushunmasangiz @Servisaiuz ga yozing")
     await runtime.set_value("support", "@Yangi_Yordam")
     check(runtime.support_username() == "Yangi_Yordam", "admin yordam markazini o'zgartirsa — darhol kuchga kiradi")
     await runtime.set_value("support", None)
-    check(runtime.support_username() == "fen1xmedia", "«-» — standartga qaytadi")
+    check(runtime.support_username() == "Servisaiuz", "«-» — standartga qaytadi")
 
     # ── Sukut: mijozlarga shaxsiy xabar yo'q, hammasi kanalga ──
     settings.announce_to_users = False

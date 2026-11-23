@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     alert_bot_token: str = ""
     alert_chat_id: str = ""                  # ixtiyoriy: qo'shimcha guruh/kanal (raqamli ID yoki @username)
     supplier_low_usd: float = 10.0           # ta'minotchidagi hamyon shundan kam bo'lsa — ogohlantirish (USD)
-    support_username: str = "fen1xmedia"      # Yordam markazi (admin paneldan o'zgartiriladi)
+    support_username: str = "Servisaiuz"      # Yordam markazi (admin paneldan o'zgartiriladi)
     support_group_id: str = ""
 
     # ── Ta'minotchi katalogi (OrientDrop Uz) ──

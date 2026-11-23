@@ -884,7 +884,7 @@ async def support_start(call: CallbackQuery, user: User, state: FSMContext):
         "🆘 <b>Yordam markazi</b>\n\n"
         f"Hozir: {'@' + html.escape(cur) if cur else 'ko‘rsatilmagan'}\n"
         "Botdagi «Yordam» tugmasi, xariddan keyingi «yozish» tugmasi, kafolat murojaati va to'lov xabarlari shu akkauntga olib boradi.\n\n"
-        "Yangi username yuboring (masalan <code>@fen1xmedia</code>).\n<code>-</code> — standart (.env) qiymatga qaytarish.",
+        "Yangi username yuboring (masalan <code>@Servisaiuz</code>).\n<code>-</code> — standart (.env) qiymatga qaytarish.",
         reply_markup=_kb([[("⬅️ Admin panel", "a:home")]]),
     )
     await call.answer()
@@ -903,7 +903,7 @@ async def support_save(message: Message, user: User, state: FSMContext):
     name = raw.replace("https://t.me/", "").lstrip("@").strip("/ ")
     import re as _re
     if not _re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{3,31}", name):
-        return await message.answer("❌ Username noto'g'ri. Masalan: <code>@fen1xmedia</code> (4–32 belgi: harf, raqam, _).")
+        return await message.answer("❌ Username noto'g'ri. Masalan: <code>@Servisaiuz</code> (4–32 belgi: harf, raqam, _).")
     await runtime.set_value("support", name)
     await state.clear()
     await message.answer(f"✅ Yordam markazi: @{html.escape(name)}\nBotda va xabarlarda darhol shu akkaunt chiqadi.",

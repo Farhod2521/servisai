@@ -174,8 +174,21 @@ function BrandIcon({ src, name }: { src: string; name: string }) {
   );
 }
 
-/** Brend logotipi (katalogdagi brend tugmalari uchun) */
+/** Botdagi premium emoji rasmi — o‘zi tayyor yumaloq ikonka, fon va chetsiz ko‘rsatiladi */
+function BotBrandIcon({ src, name }: { src: string; name: string }) {
+  return (
+    <div className={`${tile} overflow-hidden`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- kichik ikonka */}
+      <img src={src} alt={name} className="size-full object-contain" loading="lazy" />
+    </div>
+  );
+}
+
+const BOT_LOGO_PREFIX = "/api/media/brands/";
+
+/** Brend logotipi (katalogdagi brend tugmalari uchun): botdagi logotip → chizilgan logo → sayt ikonkasi → harf */
 export function brandLogo(brand: string, logoUrl: string | null): ReactNode {
+  if (logoUrl?.startsWith(BOT_LOGO_PREFIX)) return <BotBrandIcon src={logoUrl} name={brand} />;
   if (brandLogos[brand]) return brandLogos[brand];
   return logoUrl ? <BrandIcon src={logoUrl} name={brand} /> : <FallbackLogo id={brand} name={brand} />;
 }
@@ -192,7 +205,7 @@ function UploadedLogo({ src, name }: { src: string; name: string }) {
 
 export function toCatalogProduct(p: Product): CatalogProduct {
   // Ta’minotchi mahsuloti: admin yuklagan logo bo‘lmasa — brend logotipi
-  if (p.brand && (!p.logo_url || p.logo_url.startsWith("/api/media/logos/brand-"))) {
+  if (p.brand && (!p.logo_url || p.logo_url.startsWith("/api/media/logos/brand-") || p.logo_url.startsWith(BOT_LOGO_PREFIX))) {
     return { ...p, logo: brandLogo(p.brand, p.logo_url), type: p.badge === "api" ? "api" : undefined };
   }
   const base = { ...p, ...(extras[p.id] ?? { logo: <FallbackLogo id={p.id} name={p.name} /> }) };

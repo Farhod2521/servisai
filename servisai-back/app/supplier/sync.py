@@ -15,6 +15,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .. import brand_logos
 from ..database import SessionLocal
 from ..logos import media_dir
 from ..models import Product
@@ -65,6 +66,9 @@ def brand_order(brand: str) -> int:
     return 2000
 
 
+_AUTO_ORDERS = {brand_order(b) for b in client.BASE_BRANDS} | {brand_order("")}
+
+
 def product_id(external_id: str) -> str:
     """"cb:Ab_12" → "cb-ab-12" (sahifa manzili uchun)."""
     return "cb-" + re.sub(r"[^a-z0-9]+", "-", external_id.removeprefix("cb:").lower()).strip("-")[:56]
@@ -75,7 +79,11 @@ def _slug(text: str) -> str:
 
 
 async def brand_logo(brand: str, domain: str) -> str | None:
-    """Brend logotipi (sayt ikonkasi) bir marta yuklab olinib media/logos da saqlanadi."""
+    """Brend logotipi: botdagi premium emoji rasmi (app/static/brands); u bo‘lmasa — sayt ikonkasi
+    (bir marta yuklab olinib media/logos da saqlanadi)."""
+    own = brand_logos.logo_url(brand)
+    if own:
+        return own
     if not domain:
         return None
     name = f"brand-{_slug(brand)}.png"
@@ -159,10 +167,16 @@ async def sync(session: AsyncSession) -> SyncResult:
             )
             result.created += 1
             continue
+        # Brend o‘zgarsa (aniqlash yaxshilangan) — avtomatik tartib ham yangilanadi; admin qo‘ygan tartib saqlanadi
+        if product.sort_order in _AUTO_ORDERS and product.sort_order != brand_order(it["brand"]):
+            product.sort_order = brand_order(it["brand"])
+            result.updated += 1
         if product.supplier_meta.get("gone"):
             product.is_active = True  # ro‘yxatga qaytdi
-        if not product.logo_url:
+        # Admin yuklagan logo saqlanadi; avtomatik qo‘yilgani (favicon / bot logotipi) yangilanadi
+        if brand_logos.is_auto_logo(product.logo_url) and logos[it["brand"]] and product.logo_url != logos[it["brand"]]:
             product.logo_url = logos[it["brand"]]
+            result.updated += 1
         changed = False
         for attr, value in fields.items():
             if getattr(product, attr) != value:

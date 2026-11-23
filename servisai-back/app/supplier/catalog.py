@@ -168,7 +168,7 @@ BRANDS: list[tuple[str, str, str, str]] = [
     (r"ipvanish", "IPVanish", "ipvanish.com", "vpn"),
     (r"adguard", "AdGuard", "adguard-vpn.com", "vpn"),
     (r"kaspersky", "Kaspersky", "kaspersky.com", "vpn"),
-    (r"gpm login", "GPM Login", "", "vpn"),
+    (r"gpm\s*login", "GPM Login", "", "vpn"),
     (r"telegram|\btele\b", "Telegram", "telegram.org", "social"),
     (r"discord|server boost", "Discord", "discord.com", "social"),
     (r"locket", "Locket", "", "social"),
@@ -200,6 +200,13 @@ def detect_brand(name: str, emoji: str = "") -> tuple[str, str, str]:
     for rx, brand, domain, cat in _BRANDS_C:
         if rx.search(name):
             return brand, domain, cat
+    # Nomda brend yo‘q (masalan ruscha «КАПКАТ…») — ta’minotchining «emoji» maydonidagi servis nomi tekshiriladi:
+    # «capcut» → CapCut, «elevenlabs» → ElevenLabs, «antigravity» → Google VEO (aks holda «Capcut» kabi alohida brend chiqardi)
+    hint = re.sub(r"[_\-]+", " ", emoji or "").strip()       # «gpm_login» → «gpm login»
+    if hint:
+        for rx, brand, domain, cat in _BRANDS_C:
+            if rx.search(hint):
+                return brand, domain, cat
     return _guess_brand(name, emoji), "", "other"
 
 
@@ -212,6 +219,7 @@ _GENERIC_WORDS = {
     "year", "day", "days", "months", "years", "key", "keys", "code", "codes", "gift", "card", "cards", "invite",
     "subscription", "activation", "student", "edu", "ready", "instant", "auto", "the", "with", "for", "and",
     "ai", "api", "vpn", "web", "app", "pc", "ios", "android", "usa", "global", "unlimited", "credits", "credit",
+    "none", "null",                          # ta’minotchi «emoji» maydoni bo‘sh bo‘lsa shunday keladi
 }
 
 
@@ -322,6 +330,7 @@ _RU: list[tuple[str, str]] = [
     (r"приглашени\w*|инвайт\w*", "invite"), (r"слот\w*", "slot"), (r"активаци\w*", "activation"), (r"пробн\w*", "trial"),
     (r"официальн\w*|оффициальн\w*", "official"), (r"общ(?:ий|ая|ее|ие)\b", "shared"), (r"приватн\w*", "private"),
     (r"командн\w*", "team"), (r"безлимит\w*", "unlimited"), (r"бессрочн\w*|навсегда", "lifetime"), (r"бесплатн\w*", "free"),
+    (r"разблокир\w*", "unlock"), (r"(?<![а-яё])проверк\w*", "verification"),     # «Разблокировать Facebook…» → taqiqlangan tur
     (r"(?<![а-яё])(?:на|для|с|и|в|от|по|шт\.?)(?![а-яё])", " "),
 ]
 _RU_C = [(re.compile(p, re.I), r) for p, r in _RU]
@@ -542,6 +551,8 @@ def parse_item(raw: dict) -> dict:
         reason = "Kerak emas brend (%s)" % brand
     elif is_blocked(name_en, str(raw.get("emoji") or "")):
         reason = "Taqiqlangan turdagi mahsulot"
+    elif not brand:
+        reason = "Brend aniqlanmadi"          # nomi tushunarsiz («1 oylik»): botda ham ko‘rinmaydi
     elif too_short(brand, name):
         reason = "Muddati juda qisqa"
     elif no_warranty_banned(brand, warranty):

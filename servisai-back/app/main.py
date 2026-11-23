@@ -1,10 +1,15 @@
 import asyncio
+import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from . import brand_logos
+
+# python:3.12-slim da .webp turi ro‘yxatda yo‘q — logolar text/plain bo‘lib ketmasin
+mimetypes.add_type("image/webp", ".webp")
 from .config import settings
 from .logos import PUBLIC_FOLDERS, media_dir
 from .routers import admin, announcements, auth, orders, products, referrals, suggestions, supplier, users, wallet
@@ -59,3 +64,5 @@ app.include_router(api)
 # Faqat logolar va e’lon rasmlari ommaga ochiq (cheklar media/receipts da yopiq qoladi)
 for _folder in PUBLIC_FOLDERS:
     app.mount(f"/api/media/{_folder}", StaticFiles(directory=media_dir(_folder)), name=_folder)
+# Brend logotiplari (botdagi premium emoji rasmlari) — kod bilan birga keladi
+app.mount(brand_logos.URL_PREFIX.rstrip("/"), StaticFiles(directory=brand_logos.STATIC_DIR), name="brands")
